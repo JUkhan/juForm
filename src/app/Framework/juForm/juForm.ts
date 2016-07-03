@@ -135,8 +135,8 @@ export class juForm implements OnInit, OnDestroy, OnChanges {
         this.isUpdate = false;
         return this;
     }
-    showModal(isDisplayed: boolean = true) {
-        jQuery(this._elementRef.nativeElement).find('.modal').modal(isDisplayed ? 'show' : 'hide');
+    showModal(isDisplayed: boolean = true) {       
+        jQuery(this._elementRef.nativeElement.nextSibling.firstChild).modal(isDisplayed ? 'show' : 'hide');
         if (isDisplayed) {
             this.dynamicComponent.instance.focus();
         }

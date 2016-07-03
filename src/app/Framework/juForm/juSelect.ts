@@ -3,7 +3,7 @@ import {Component, OnChanges, ElementRef, forwardRef, OnInit, Inject, ViewEncaps
 import {Control, ControlGroup, FormBuilder, FORM_DIRECTIVES} from "@angular/common";
 
 //import {AnimationBuilder, CssAnimationBuilder} from 'angular2/animate';
-import {AppService} from '../../services';
+import { AppService } from '../../shared';
 declare var jQuery: any;
 
 @Component({

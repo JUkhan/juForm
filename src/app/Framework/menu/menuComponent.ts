@@ -1,9 +1,10 @@
-import {Component, OnInit, Input} from 'angular2/core';
+import {Component, OnInit, Input} from '@angular/core';
 
 @Component({
-    selector: '[menu]',
+    selector: '[menu], menu',
     template:require('./menu.html'),
-    host:{'class':'collapse navbar-collapse'}
+    host:{'class':'collapse navbar-collapse'},
+    styleUrls: ['./menu.css']
 })
 
 export class menuComponent implements OnInit {

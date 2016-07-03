@@ -3,7 +3,7 @@ import {Component, OnInit, ElementRef, Input,DynamicComponentLoader,
 import {FormBuilder, Validators, ControlGroup, FORM_DIRECTIVES} from '@angular/common';
 import {juSelect, Datetimepicker} from '../juForm';
 import{FilterService} from './filterSvc';
-import {AppService} from '../../services/';
+import { AppService } from '../../shared';
 import {Subject} from 'rxjs/Subject';
 @Component({
     selector:'.filter-mobile, .filter-web',

@@ -1,5 +1,5 @@
 import {Inject, forwardRef, Component, OnInit, OnDestroy, Directive, Input, Output, ElementRef, EventEmitter, ViewEncapsulation} from '@angular/core';
-import {AppService} from '../../services';
+import { AppService } from '../../shared';
 import {find} from 'lodash';
 
 

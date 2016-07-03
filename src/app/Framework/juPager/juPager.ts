@@ -1,4 +1,4 @@
-import {Component, OnInit, OnDestroy, Input, Output, EventEmitter, OnChanges, ChangeDetectionStrategy, ChangeDetectorRef} from 'angular2/core';
+import {Component, OnInit, OnDestroy, Input, Output, EventEmitter, OnChanges, ChangeDetectionStrategy, ChangeDetectorRef} from '@angular/core';
 //import {Observable} from 'rxjs/observable';
 @Component({
     selector: '.juPager, [juPager]',

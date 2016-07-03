@@ -1,83 +1,34 @@
-/*
- * Angular 2 decorators and services
- */
-import { Component, ViewEncapsulation } from '@angular/core';
-import { RouteConfig, Router } from '@angular/router-deprecated';
+import { Component } from '@angular/core';
+//import { ROUTER_DIRECTIVES } from '@angular/router';
 
-//import {FORM_PROVIDERS} from '@angular/common';
+import { AppService } from './shared';
+import {menuComponent} from '../app/Framework';
+import '../style/app.scss';
 
-import { AppState } from './app.service';
-import { Home } from './home';
-import { RouterActive } from './router-active';
-import {AppService} from './services';
-//import {FilterService} from './Framework';
-import {MyExpandoCmp} from './anim'
 /*
  * App Component
  * Top Level Component
  */
 @Component({
-  selector: 'app',
-  pipes: [ ],
-  providers: [AppService ],
-  directives: [ RouterActive ],
-  encapsulation: ViewEncapsulation.None,
-  styles: [
-    require('./app.css')
-  ],
-  template: `
-    <span router-active>
-      <button [routerLink]=" ['Index'] ">
-        Index
-      </button>
-    </span>
-    <span router-active>
-      <button [routerLink]=" ['Home'] ">
-        Home
-      </button>
-    </span>
-    
-    <span router-active>
-      <button [routerLink]=" ['Anim'] ">
-        Anim
-      </button>
-    </span>
-
-    <main>
-      <router-outlet></router-outlet>
-    </main>
-
-    <pre class="app-state">this.appState.state = {{ appState.state | json }}</pre>
-  `
+  selector: 'my-app', // <my-app></my-app>
+  providers: [AppService],
+  directives: [menuComponent],
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.scss'],
 })
-@RouteConfig([
-  { path: '/',      name: 'Index', component: Home, useAsDefault: true },
-  { path: '/home',  name: 'Home',  component: Home },
-  // Async load a component using Webpack's require with es6-promise-loader and webpack `require`
-  //{ path: '/about', name: 'About', loader: () => require('es6-promise!./about')('About') },
-   { path: '/anim',  name: 'Anim',  component: MyExpandoCmp },
-])
-export class App {
-  angularclassLogo = 'assets/img/angularclass-avatar.png';
-  loading = false;
-  name = 'Angular 2 Webpack Starter';
-  url = 'https://twitter.com/AngularClass';
-
-  constructor(
-    public appState: AppState) {
-
+export class AppComponent {
+  menuData:any[];
+  url:string="abc"
+  constructor(private api: AppService) {
   }
-
-  ngOnInit() {
-    console.log('Initial App State', this.appState.state);
+  ngOnInit(){
+    this.menuData=[
+      {name:'Home', link:'/', icon: 'fa fa-home'},
+      {name:'Settings', icon: 'fa fa-gear',items:[
+         {name:'Setting1', link:'/set1', icon: 'fa fa-home'},
+         {name:'Setting2', link:'/set2', icon: 'fa fa-home'},
+      ]},
+      {name:'About', link:'/about', icon: 'fa fa-male'}
+    ];
   }
-
 }
-
-/*
- * Please review the https://github.com/AngularClass/angular2-examples/ repo for
- * more angular app examples that you may copy/paste
- * (The examples may not be updated as quickly. Please open an issue on github for us to update it)
- * For help or questions please contact us at @AngularClass on twitter
- * or our chat on Slack at https://AngularClass.com/slack-join
- */
