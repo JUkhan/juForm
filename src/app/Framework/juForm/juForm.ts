@@ -72,8 +72,8 @@ export class juForm implements OnInit, OnDestroy, OnChanges {
             }
         }
         if (this.model) {
-            this.options = _.cloneDeep(this.options);            
-            if (juForm.FORM_LIST.size > 0) {
+            this.options = _.cloneDeep(this.options);
+            if (juForm.FORM_LIST.size > 0) {                
                 this._setCommonData(juForm.FORM_LIST.values().next().value, this.options);
             }
             juForm.FORM_LIST.set(this, this.options);
@@ -90,7 +90,7 @@ export class juForm implements OnInit, OnDestroy, OnChanges {
     loadComponent() {
         if (this.options.inputs || this.options.tabs) {
             // this.loader.loadAsRoot(getDynamicComponent(this._get_dynamic_config()), '#dcl', this.injector)
-            this.loader.loadNextToLocation(getComponent(this._get_dynamic_config()), this.viewContainerRef)
+            this.loader.loadNextToLocation(getComponent(this.getConfig()), this.viewContainerRef)
                 .then((com) => {
                     this.dynamicComponent = com;
                     com.instance.setConfig(this.options, this);
@@ -123,6 +123,7 @@ export class juForm implements OnInit, OnDestroy, OnChanges {
         if (this.dynamicComponent) {
             this.dynamicComponent.destroy();
         }
+       
     }
     showMessage(message: string, messageCss: string = 'alert alert-info') {
         if (this.dynamicComponent && this.dynamicComponent.instance) {
@@ -187,25 +188,13 @@ export class juForm implements OnInit, OnDestroy, OnChanges {
         }
         return false;
     }
-    setDetilData(key: string, data: any[]) {
-        juForm.FORM_LIST.forEach(options => {
-            if (options.inputs) {
-                let item = getItem(options.inputs, (x: any) => x.field === key && x.type === 'juSelect');
-                if (item) {
-                    item.data = data;
-                }
-            }
-            else if (options.tabs) {
-                for (var tabName in options.tabs) {
-                    let item = getItem(options.tabs[tabName], (x: any) => x.field === key && x.type === 'juSelect');
-                    if (item) {
-                        item.data = data;
-                        break;
-                    }
-                }
-            }
+    setDetilData(key: string, data: any[]) {            
+        juForm.FORM_LIST.forEach(options => {            
+            let item = options._events[key];
+            if (item && item.field) {
+                item.field.data = data;
+            }           
         });
-
         return this;
     }
     _setCommonData(preOpts, opts) {
@@ -218,21 +207,21 @@ export class juForm implements OnInit, OnDestroy, OnChanges {
             }
         }
     }
-    _commonDataHelper(fields: Array<any>, desFields: Array<any>) {
+    _commonDataHelper(fields: Array<any>, desFields: Array<any>) {        
         fields.forEach(item => {
             if (Array.isArray(item)) {
                 item.forEach(item2 => {
-                    if (item2.type === 'juSelect' && item2.data) {
-                        let resItem = getItem(desFields, (x: any) => x.field === item2.field && x.type === 'juSelect');
-                        if (!resItem.data) {
+                    if ((item2.type === 'juSelect' || item2.type === 'select') && item2.data) {
+                        let resItem = getItem(desFields, (x: any) => x.field === item2.field && (x.type === 'juSelect' || x.type == 'select'));
+                        if (resItem) {
                             resItem.data = item2.data;
                         }
                     }
                 })
             } else {
-                if (item.type === 'juSelect' && item.data) {
-                    let resItem = getItem(desFields, (x: any) => x.field === item.field && x.type === 'juSelect');
-                    if (!resItem.data) {
+                if ((item.type === 'juSelect' || item.type === 'select') && item.data) {
+                    let resItem = getItem(desFields, (x: any) => x.field === item.field && (x.type === 'juSelect' || x.type == 'select'));
+                    if (resItem) {
                         resItem.data = item.data;
                     }
                 }
@@ -269,27 +258,27 @@ export class juForm implements OnInit, OnDestroy, OnChanges {
     //private firstTab: string = '';
     private activeTabs: any = {};
     private tabid = 0;
-    private _get_dynamic_config() {
+    private getConfig() {
         var template: any[] = [], obj: any = {};
         if (this.viewMode == 'panel') {
             template.push(`<div class="panel panel-${this.panelMode}">
-    <div class="panel-heading" style="cursor:pointer" (click)="slideToggle()">
-        <h3 class="panel-title">${this.title}</h3>
-    </div>
-    <div class="panel-body">
-     <div *ngIf="message" [class]="messageCss">{{message}}</div>       
-    `);
+            <div class="panel-heading" style="cursor:pointer" (click)="slideToggle()">
+                <h3 class="panel-title">${this.title}</h3>
+            </div>
+            <div class="panel-body">
+            <div *ngIf="message" [class]="messageCss">{{message}}</div>       
+            `);
         } else if (this.viewMode == 'popup') {
             template.push(`<div class="modal fade" tabindex="-1" role="dialog">    
-        <div class="modal-dialog">           
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                    <h4 class="modal-title">${this.title}</h4>
-                </div>
-                <div class="modal-body">
-                 <div *ngIf="message" [class]="messageCss">{{message}}</div>                    
-                `);
+                <div class="modal-dialog">           
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                            <h4 class="modal-title">${this.title}</h4>
+                        </div>
+                        <div class="modal-body">
+                        <div *ngIf="message" [class]="messageCss">{{message}}</div>                    
+                        `);
         }
         template.push('<div class="form-horizontal">');
 
@@ -356,10 +345,6 @@ export class juForm implements OnInit, OnDestroy, OnChanges {
                             if (!item.change) {
                                 item.change = (val: any) => { };
                             }
-                            //if ((item.validators && item.validators.length >= 1) || item.required) {
-                            //this._error_check += ` && ${cfield}select.hasError(1)`;
-                            //item.required = true;
-                            //}
                             template.push(this._getjuSelectTemplate(item.field, item, refPath + `[${index}]`));
                             break;
                         case 'select':
@@ -442,7 +427,6 @@ export class juForm implements OnInit, OnDestroy, OnChanges {
             template.push(groupTpl.join(''));
         }
     }
-
     private getGroupInputs(obj: any, ref: string, group: any): string {
 
         let template: any[] = [];
@@ -503,7 +487,6 @@ export class juForm implements OnInit, OnDestroy, OnChanges {
         //if (input.validators && input.validators.length >= 1) {
         // group.push(Validators.compose(input.validators));
         //}
-
         return group;
     }
     private _getDetailTemplate(fieldName: string, input: any, config: string) {
@@ -548,34 +531,9 @@ export class juForm implements OnInit, OnDestroy, OnChanges {
                     property-name="${fieldName}" 
                     view-mode="${input.viewMode || 'select'}" 
                     [data-src]="${config}.data">
-                </juSelect>
-                
-                <div *ngIf="${cfield}select.hasError()" class="alert alert-danger" [innerHTML]="${config}.message">
-                   
-                </div>`;
-        //input.message=(input.label||input.field)+' is required';
-        if (this.isVertical) {
-            return labelPos === 'top' ?
-                `<div class="form-group" ${input.exp}>
-                        <label>${input.label || fieldName}</label>                        
-                        ${element}                        
-                </div>`:
-                `<div class="form-group" ${input.exp}>
-                            <label class="col-md-${labelSize} control-label">${input.label || fieldName}</label>                        
-                            <div class="col-md-${12 - labelSize}"> ${element}  </div>                      
-                </div>`;
-        }
-        return labelPos === 'top' ?
-            `<div class="col-md-${input.size}${this.getColOffset(input)}" ${input.exp}>
-                        <label class="control-label">${input.label || fieldName}</label>                                               
-                        ${element}
-            </div>`:
-            `<div class="col-md-${input.size}${this.getColOffset(input)}" ${input.exp}>
-                <div class="form-group">
-                    <label class="col-md-${labelSize} control-label">${input.label || fieldName}</label>                                               
-                    <div class="col-md-${12 - labelSize}"> ${element}  </div>
-                </div>       
-            </div>`;
+                </juSelect>                
+                <div *ngIf="${cfield}select.hasError()" class="alert alert-danger" [innerHTML]="${config}.message"></div>`;
+         return this.getHtml(input, element, fieldName, labelPos, labelSize);
     }
     private _getInputTemplate(fieldName: string, input: any, config: string) {
 
@@ -583,110 +541,37 @@ export class juForm implements OnInit, OnDestroy, OnChanges {
             labelPos = input.labelPos || this.options.labelPos || 'top',
             cfield = fieldName.split('.').join('_');
         input.type = input.type || 'text';
-        let inputHtml = (input.type === 'textarea') ?
+        let element = (input.type === 'textarea') ?
             `<textarea (keyup)="vlidate_input(model.${fieldName}, ${config})" [disabled]="${config}.disabled" [(ngModel)]="model.${fieldName}" class="form-control" placeholder="Enter ${input.label || fieldName}"></textarea>`
             :
-            `<input type="${input.type}" (keyup)="vlidate_input(model.${fieldName}, ${config})" [disabled]="${config}.disabled"   [(ngModel)]="model.${fieldName}" class="form-control" placeholder="Enter ${input.label || fieldName}">`
-
-        let element = `${inputHtml}
-                    <div *ngIf="!${config}.hideMsg" class="alert alert-danger" [innerHTML]="${config}.message">
-                          
-                    </div>`;
-
-        if (this.isVertical) {
-            return labelPos === 'top' ?
-                `<div class="form-group" ${input.exp}>
-                        <label>${input.label || fieldName}</label>                        
-                        ${element}                        
-                </div>`:
-                `<div class="form-group" ${input.exp}>
-                            <label class="col-md-${labelSize} control-label">${input.label || fieldName}</label>                        
-                            <div class="col-md-${12 - labelSize}"> ${element}  </div>                      
-                </div>`;
-        }
-        return labelPos === 'top' ?
-            `<div class="col-md-${input.size}${this.getColOffset(input)}" ${input.exp}>
-                        <label class="control-label">${input.label || fieldName}</label>                                               
-                        ${element}
-            </div>`:
-            `<div class="col-md-${input.size}${this.getColOffset(input)}" ${input.exp}>
-                <div class="form-group">
-                    <label class="col-md-${labelSize} control-label">${input.label || fieldName}</label>                                               
-                    <div class="col-md-${12 - labelSize}"> ${element}  </div>
-                </div>       
-            </div>`;
+            `<input type="${input.type}" (keyup)="vlidate_input(model.${fieldName}, ${config})" [disabled]="${config}.disabled"   [(ngModel)]="model.${fieldName}" class="form-control" placeholder="Enter ${input.label || fieldName}">
+            <div *ngIf="!${config}.hideMsg" class="alert alert-danger" [innerHTML]="${config}.message"></div>`;
+         return this.getHtml(input, element, fieldName, labelPos, labelSize);          
+       
     }
     private getColOffset(input: any) {
         return input.offset ? ` col-md-offset-${input.offset}` : '';
     }
+    private getRequiredInfo(field:any){        
+        return field.validators?'<span class="required" title="This field is required.">*</span>':'';
+    }
     private _getFileTemplate(fieldName: string, input: any, config: string) {
-
         let labelSize = input.labelSize || this.options.labelSize || 3,
             labelPos = input.labelPos || this.options.labelPos || 'top',
             cfield = fieldName.split('.').join('_'),
-            inputHtml = `<input type="file" fileSelect [model]="model" propName="${fieldName}" [ext]="${config}.ext" ${input.multiple ? 'multiple' : ''} (click)="vlidate_input(model.${fieldName}, ${config})" [form]="myForm" [config]="${config}" [disabled]="${config}.disabled" class="form-control" placeholder="Select file(s)...">`;
-        let element = `${inputHtml}
-                    <div *ngIf="!${config}.hideMsg" class="alert alert-danger" [innerHTML]="${config}.message">
-                          
-                    </div>`;
-        if (this.isVertical) {
-            return labelPos === 'top' ?
-                `<div class="form-group" ${input.exp}>
-                        <label>${input.label || fieldName}</label>                        
-                        ${element}                        
-                </div>`:
-                `<div class="form-group" ${input.exp}>
-                            <label class="col-md-${labelSize} control-label">${input.label || fieldName}</label>                        
-                            <div class="col-md-${12 - labelSize}"> ${element}  </div>                      
-                </div>`;
-        }
-        return labelPos === 'top' ?
-            `<div class="col-md-${input.size}${this.getColOffset(input)}" ${input.exp}>
-                        <label class="control-label">${input.label || fieldName}</label>                                               
-                        ${element}
-            </div>`:
-            `<div class="col-md-${input.size}${this.getColOffset(input)}" ${input.exp}>
-                <div class="form-group">
-                    <label class="col-md-${labelSize} control-label">${input.label || fieldName}</label>                                               
-                    <div class="col-md-${12 - labelSize}"> ${element}  </div>
-                </div>       
-            </div>`;
+            element = `<input type="file" fileSelect [model]="model" propName="${fieldName}" [ext]="${config}.ext" ${input.multiple ? 'multiple' : ''} (click)="vlidate_input(model.${fieldName}, ${config})" [form]="myForm" [config]="${config}" [disabled]="${config}.disabled" class="form-control" placeholder="Select file(s)...">
+                    <div *ngIf="!${config}.hideMsg" class="alert alert-danger" [innerHTML]="${config}.message"></div>`;
+        return this.getHtml(input, element, fieldName, labelPos, labelSize);
     }
     private _getCkEditorTemplate(fieldName: string, input: any, config: string) {
-
         let labelSize = input.labelSize || this.options.labelSize || 3,
             labelPos = input.labelPos || this.options.labelPos || 'top',
             cfield = fieldName.split('.').join('_'),
-            inputHtml =
-                `<textarea ckeditor [config]="${config}" (click)="fieldClick('${fieldName}', ${config})" [disabled]="${config}.disabled" [(ngModel)]="model.${fieldName}" class="form-control" placeholder="Enter ${input.label || fieldName}"></textarea>`,
-
-            element = `${inputHtml}
-                    <div *ngIf="!${config}.hideMsg" class="alert alert-danger" [innerHTML]="${config}.message">
-                          
-                    </div>`;
-
-        if (this.isVertical) {
-            return labelPos === 'top' ?
-                `<div class="form-group" ${input.exp}>
-                        <label>${input.label || fieldName}</label>                        
-                        ${element}                        
-                </div>`:
-                `<div class="form-group" ${input.exp}>
-                            <label class="col-md-${labelSize} control-label">${input.label || fieldName}</label>                        
-                            <div class="col-md-${12 - labelSize}"> ${element}  </div>                      
-                </div>`;
-        }
-        return labelPos === 'top' ?
-            `<div class="col-md-${input.size}${this.getColOffset(input)}" ${input.exp}>
-                        <label class="control-label">${input.label || fieldName}</label>                                               
-                        ${element}
-            </div>`:
-            `<div class="col-md-${input.size}${this.getColOffset(input)}" ${input.exp}>
-                <div class="form-group">
-                    <label class="col-md-${labelSize} control-label">${input.label || fieldName}</label>                                               
-                    <div class="col-md-${12 - labelSize}"> ${element}  </div>
-                </div>       
-            </div>`;
+            element =
+                `<textarea ckeditor [config]="${config}" (click)="fieldClick('${fieldName}', ${config})" [disabled]="${config}.disabled" [(ngModel)]="model.${fieldName}" class="form-control" placeholder="Enter ${input.label || fieldName}"></textarea>
+                 <div *ngIf="!${config}.hideMsg" class="alert alert-danger" [innerHTML]="${config}.message"></div>`;
+            return this.getHtml(input, element, fieldName, labelPos, labelSize);         
+        
     }
     private _getDateTemplate(fieldName: string, input: any, config: string) {
         let labelSize = input.labelSize || this.options.labelSize || 3,
@@ -698,64 +583,43 @@ export class juForm implements OnInit, OnDestroy, OnChanges {
                             <span class="fa fa-calendar"></span>
                         </span>
                     </div>                    
-                    <div *ngIf="!${config}.hideMsg" class="alert alert-danger" [innerHTML]="${config}.message">
-                           
-                    </div>`;
-
-        if (this.isVertical) {
-            return labelPos === 'top' ?
-                `<div class="form-group" ${input.exp}>
-                        <label>${input.label || fieldName}</label>                        
-                        ${element}                        
-                </div>`:
-                `<div class="form-group" ${input.exp}>
-                            <label class="col-md-${labelSize} control-label">${input.label || fieldName}</label>                        
-                            <div class="col-md-${12 - labelSize}"> ${element}  </div>                      
-                </div>`;
-        }
-        return labelPos === 'top' ?
-            `<div class="col-md-${input.size}${this.getColOffset(input)}" ${input.exp}>
-                        <label class="control-label">${input.label || fieldName}</label>                                               
-                        ${element}
-            </div>`:
-            `<div class="col-md-${input.size}${this.getColOffset(input)}" ${input.exp}>
-                <div class="form-group">
-                    <label class="col-md-${labelSize} control-label">${input.label || fieldName}</label>                                               
-                    <div class="col-md-${12 - labelSize}"> ${element}  </div>
-                </div>       
-            </div>`;
+                    <div *ngIf="!${config}.hideMsg" class="alert alert-danger" [innerHTML]="${config}.message"></div>`;
+          return this.getHtml(input, element, fieldName, labelPos, labelSize);           
+       
     }
     private _getSelectTemplate(fieldName: string, input: any, config: string) {
         let labelSize = input.labelSize || this.options.labelSize || 3,
             labelPos = input.labelPos || this.options.labelPos || 'top',
             cfield = fieldName.split('.').join('_'),
-            element = `<select (click)="vlidate_input(model.${fieldName}, ${config})" (change)="${config}.change(${cfield}.value)" #${cfield} [disabled]="${config}.disabled" [(ngModel)]="model.${fieldName}" class="form-control">
+            element = `<select (click)="vlidate_input(model.${fieldName}, ${config})" (change)="${config}.change({value:${cfield}.value, sender:${cfield}, form:myForm})" #${cfield} [disabled]="${config}.disabled" [(ngModel)]="model.${fieldName}" class="form-control">
                             <option value="">{{${config}.emptyOptionText||'Select option'}}</option>
                             <option *ngFor="let v of ${config}.data" [value]="v.value">{{v.name}}</option>
                         </select>
-                        <div *ngIf="!${config}.hideMsg" class="alert alert-danger" [innerHTML]="${config}.message">
-                          
-                        </div>`;
-
-        if (this.isVertical) {
+                        <div *ngIf="!${config}.hideMsg" class="alert alert-danger" [innerHTML]="${config}.message"></div>`;
+           return this.getHtml(input, element, fieldName, labelPos, labelSize);             
+       
+    }
+    private getHtml(input:any, element:any, fieldName:string, labelPos:string, labelSize:any){
+        let label=(input.label || fieldName)+this.getRequiredInfo(input);
+         if (this.isVertical) {
             return labelPos === 'top' ?
                 `<div class="form-group" ${input.exp}>
-                        <label>${input.label || fieldName}</label>                        
+                        <label>${label}</label>                        
                         ${element}                        
                 </div>`:
                 `<div class="form-group" ${input.exp}>
-                            <label class="col-md-${labelSize} control-label">${input.label || fieldName}</label>                        
+                            <label class="col-md-${labelSize} control-label">${label}</label>                        
                             <div class="col-md-${12 - labelSize}"> ${element}  </div>                      
                 </div>`;
         }
         return labelPos === 'top' ?
             `<div class="col-md-${input.size}${this.getColOffset(input)}" ${input.exp}>
-                        <label class="control-label">${input.label || fieldName}</label>                                               
+                        <label class="control-label">${label}</label>                                               
                         ${element}
             </div>`:
             `<div class="col-md-${input.size}${this.getColOffset(input)}" ${input.exp}>
                 <div class="form-group">
-                    <label class="col-md-${labelSize} control-label">${input.label || fieldName}</label>                                               
+                    <label class="col-md-${labelSize} control-label">${label}</label>                                               
                     <div class="col-md-${12 - labelSize}"> ${element}  </div>
                 </div>       
             </div>`;
@@ -786,7 +650,6 @@ function getComponent(obj: any) {
         slideToggle() {
             jQuery(this.el.nativeElement).find('.panel-body').slideToggle();
         }
-
         setModel(model: any) {
             this.model = model;
             for (let prop in this.config._events) {
