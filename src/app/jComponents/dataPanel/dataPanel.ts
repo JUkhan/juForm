@@ -1,5 +1,5 @@
 import {Inject, forwardRef, Component, OnInit, OnDestroy, Directive, Input, Output, ElementRef, EventEmitter, ViewEncapsulation} from '@angular/core';
-import { AppService } from '../../shared';
+
 import {find} from 'lodash';
 
 
@@ -25,13 +25,13 @@ declare var Expo: any;
 })
 
 export class DataPanel implements OnInit, OnDestroy {
-    viewMode: string = 'mobile';
+    @Output() viewMode: string = 'web';
     @Output() onActive = new EventEmitter();
     activePane: UiPane = null;
     width: number;
     panes: UiPane[] = []
-    constructor(appService: AppService, private el: ElementRef) {
-        this.viewMode = appService.mobileCheck() ? 'mobile' : 'web';
+    constructor( private el: ElementRef) {
+       
     }
 
     ngOnInit() {

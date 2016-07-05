@@ -6,7 +6,7 @@ import {Component, OnInit, OnDestroy, Input, Output, EventEmitter, OnChanges, Ch
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 
-export class juPagerComponent implements OnInit, OnChanges {
+export class juPager implements OnInit, OnChanges {
     @Output() pageChange = new EventEmitter();
     @Output() onInit = new EventEmitter();
     @Input() linkPages: number = 10;

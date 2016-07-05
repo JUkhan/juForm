@@ -3,7 +3,7 @@ import {Component, OnChanges, ElementRef, forwardRef, OnInit, Inject, ViewEncaps
 import {Control, ControlGroup, FormBuilder, FORM_DIRECTIVES} from "@angular/common";
 
 //import {AnimationBuilder, CssAnimationBuilder} from 'angular2/animate';
-import { AppService } from '../../shared';
+import { uiService } from '../uiService';
 declare var jQuery: any;
 
 @Component({
@@ -113,7 +113,7 @@ export class juSelect implements OnInit, OnChanges {
     optionsDom: any;
     domClickSubscription: any;
     //[style.display]="visible?'block':'none'" [hidden]="!visible"   
-    constructor(fb: FormBuilder, private el: ElementRef, private appService: AppService) {
+    constructor(fb: FormBuilder, private el: ElementRef, private uiService: uiService) {
         this.searchControl.valueChanges.subscribe(this.search.bind(this));
     }
     ngOnChanges(changes) {
@@ -195,7 +195,7 @@ export class juSelect implements OnInit, OnChanges {
             this.selectedText = 'Select options';
         }
         this.api.api = this;
-        this.domClickSubscription = this.appService.documentClick.subscribe((event: any) => {
+        this.domClickSubscription = this.uiService.documentClick.subscribe((event: any) => {
             var target = event.target;
             if (jQuery(target).parents('.ju-select').length) {
                 this.eventState.visible = this.visible;

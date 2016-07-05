@@ -73,7 +73,7 @@ export class juForm implements OnInit, OnDestroy, OnChanges {
         }
         if (this.model) {
             this.options = _.cloneDeep(this.options);
-            if (juForm.FORM_LIST.size > 0) {                
+            if (juForm.FORM_LIST.size > 0) {
                 this._setCommonData(juForm.FORM_LIST.values().next().value, this.options);
             }
             juForm.FORM_LIST.set(this, this.options);
@@ -98,9 +98,15 @@ export class juForm implements OnInit, OnDestroy, OnChanges {
                         this.setModel(this.options.refreshBy);
                     }
                     if (this.isTab) {
+                        let firstProp, index=0;
                         for (var prop in this.activeTabs) {
-                            com.instance.tabClick(prop, null, this.activeTabs[prop]);
+                            com.instance.tabClick(prop, null, this.activeTabs[prop]); 
+                            if(index==0){
+                                firstProp=prop;
+                            } 
+                            index++;                         
                         }
+                        com.instance.tabClick(firstProp, null, this.activeTabs[firstProp]); 
                     } else {
                         com.instance.focus();
                     }
@@ -123,7 +129,7 @@ export class juForm implements OnInit, OnDestroy, OnChanges {
         if (this.dynamicComponent) {
             this.dynamicComponent.destroy();
         }
-       
+
     }
     showMessage(message: string, messageCss: string = 'alert alert-info') {
         if (this.dynamicComponent && this.dynamicComponent.instance) {
@@ -135,12 +141,12 @@ export class juForm implements OnInit, OnDestroy, OnChanges {
         this.isUpdate = false;
         return this;
     }
-    showModal(isDisplayed: boolean = true) {       
+    showModal(isDisplayed: boolean = true) {
         jQuery(this._elementRef.nativeElement.nextSibling.firstChild).modal(isDisplayed ? 'show' : 'hide');
         if (isDisplayed) {
             this.dynamicComponent.instance.focus();
         }
-        return false;
+        return this;
     }
     setModel(model: any): juForm {
         this.dynamicComponent.instance.setModel(model);
@@ -188,12 +194,12 @@ export class juForm implements OnInit, OnDestroy, OnChanges {
         }
         return false;
     }
-    setDetilData(key: string, data: any[]) {            
-        juForm.FORM_LIST.forEach(options => {            
+    setDetilData(key: string, data: any[]) {
+        juForm.FORM_LIST.forEach(options => {
             let item = options._events[key];
             if (item && item.field) {
                 item.field.data = data;
-            }           
+            }
         });
         return this;
     }
@@ -207,7 +213,7 @@ export class juForm implements OnInit, OnDestroy, OnChanges {
             }
         }
     }
-    _commonDataHelper(fields: Array<any>, desFields: Array<any>) {        
+    _commonDataHelper(fields: Array<any>, desFields: Array<any>) {
         fields.forEach(item => {
             if (Array.isArray(item)) {
                 item.forEach(item2 => {
@@ -395,29 +401,10 @@ export class juForm implements OnInit, OnDestroy, OnChanges {
                 groupTpl.push(`<div class="row">`);
                 if (Array.isArray(row)) {
                     row.forEach((group: any, gindex: number) => {
-                        groupTpl.push(`<div class="col-md-${group.size || 12}" ${group.exp}>`);
-                        if (group.isContainer && group.items) {
-                            let nestedTpl = [];
-                            this.resolveGroupLayout(group, gref + `[${gindex}]`, 0, obj, nestedTpl, true);
-                            groupTpl.push(nestedTpl.join(''));
-                        } else {
-                            groupTpl.push(`<fieldset class="group-${'' + index + gindex}">`);
-                            groupTpl.push(`<legend>${group.groupName}</legend>`);
-                            //group inputs and tabs 
-                            if (group.items) {
-                                let nestedTpl = [];
-                                this.resolveGroupLayout(group, gref + `[${gindex}]`, 0, obj, nestedTpl, true);
-                                groupTpl.push(nestedTpl.join(''));
-                            } else {
-                                this.options.labelPos = group.labelPos || labelPos;
-                                this.options.labelSize = group.labelSize || labelSize;
-                                groupTpl.push(this.getGroupInputs(obj, gref + `[${gindex}]`, group));
-                            }
-                            //end of group inputs and tabs
-                            groupTpl.push('</fieldset>');
-                        }
-                        groupTpl.push('</div>');
+                        this.resolveGroup(group, groupTpl, gref, gindex, index, labelPos, labelSize, obj);
                     });
+                } else {
+                    this.resolveGroup(row, groupTpl, gref, -1, index, labelPos, labelSize, obj);
                 }
                 groupTpl.push('</div>');
 
@@ -426,6 +413,43 @@ export class juForm implements OnInit, OnDestroy, OnChanges {
             this.options.labelSize = labelSize;
             template.push(groupTpl.join(''));
         }
+    }
+    private resolveGroup(group: any, groupTpl: any[],
+        gref: any, gindex: any, index: any, labelPos: any, labelSize: any, obj: any) {
+        groupTpl.push(`<div class="col-md-${group.size || 12}" ${group.exp}>`);
+        if (group.isContainer && group.items) {
+            let nestedTpl = [];
+            if (gindex >= 0) {
+                this.resolveGroupLayout(group, gref + `[${gindex}]`, 0, obj, nestedTpl, true);
+            } else {
+                this.resolveGroupLayout(group, gref, 0, obj, nestedTpl, true);
+            }
+            groupTpl.push(nestedTpl.join(''));
+        } else {
+            groupTpl.push(`<fieldset class="group-${'' + index + gindex}">`);
+            groupTpl.push(`<legend>${group.groupName}</legend>`);
+            //group inputs and tabs 
+            if (group.items) {
+                let nestedTpl = [];
+                if (gindex >= 0) {
+                    this.resolveGroupLayout(group, gref + `[${gindex}]`, 0, obj, nestedTpl, true);
+                } else {
+                    this.resolveGroupLayout(group, gref, 0, obj, nestedTpl, true);
+                }
+                groupTpl.push(nestedTpl.join(''));
+            } else {
+                this.options.labelPos = group.labelPos || labelPos;
+                this.options.labelSize = group.labelSize || labelSize;
+                if (gindex >= 0) {
+                    groupTpl.push(this.getGroupInputs(obj, gref + `[${gindex}]`, group));
+                } else {
+                    groupTpl.push(this.getGroupInputs(obj, gref, group));
+                }
+            }
+            //end of group inputs and tabs
+            groupTpl.push('</fieldset>');
+        }
+        groupTpl.push('</div>');
     }
     private getGroupInputs(obj: any, ref: string, group: any): string {
 
@@ -533,7 +557,7 @@ export class juForm implements OnInit, OnDestroy, OnChanges {
                     [data-src]="${config}.data">
                 </juSelect>                
                 <div *ngIf="${cfield}select.hasError()" class="alert alert-danger" [innerHTML]="${config}.message"></div>`;
-         return this.getHtml(input, element, fieldName, labelPos, labelSize);
+        return this.getHtml(input, element, fieldName, labelPos, labelSize);
     }
     private _getInputTemplate(fieldName: string, input: any, config: string) {
 
@@ -546,14 +570,14 @@ export class juForm implements OnInit, OnDestroy, OnChanges {
             :
             `<input type="${input.type}" (keyup)="vlidate_input(model.${fieldName}, ${config})" [disabled]="${config}.disabled"   [(ngModel)]="model.${fieldName}" class="form-control" placeholder="Enter ${input.label || fieldName}">
             <div *ngIf="!${config}.hideMsg" class="alert alert-danger" [innerHTML]="${config}.message"></div>`;
-         return this.getHtml(input, element, fieldName, labelPos, labelSize);          
-       
+        return this.getHtml(input, element, fieldName, labelPos, labelSize);
+
     }
     private getColOffset(input: any) {
         return input.offset ? ` col-md-offset-${input.offset}` : '';
     }
-    private getRequiredInfo(field:any){        
-        return field.validators?'<span class="required" title="This field is required.">*</span>':'';
+    private getRequiredInfo(field: any) {
+        return field.validators ? '<span class="required" title="This field is required.">*</span>' : '';
     }
     private _getFileTemplate(fieldName: string, input: any, config: string) {
         let labelSize = input.labelSize || this.options.labelSize || 3,
@@ -570,8 +594,8 @@ export class juForm implements OnInit, OnDestroy, OnChanges {
             element =
                 `<textarea ckeditor [config]="${config}" (click)="fieldClick('${fieldName}', ${config})" [disabled]="${config}.disabled" [(ngModel)]="model.${fieldName}" class="form-control" placeholder="Enter ${input.label || fieldName}"></textarea>
                  <div *ngIf="!${config}.hideMsg" class="alert alert-danger" [innerHTML]="${config}.message"></div>`;
-            return this.getHtml(input, element, fieldName, labelPos, labelSize);         
-        
+        return this.getHtml(input, element, fieldName, labelPos, labelSize);
+
     }
     private _getDateTemplate(fieldName: string, input: any, config: string) {
         let labelSize = input.labelSize || this.options.labelSize || 3,
@@ -584,8 +608,8 @@ export class juForm implements OnInit, OnDestroy, OnChanges {
                         </span>
                     </div>                    
                     <div *ngIf="!${config}.hideMsg" class="alert alert-danger" [innerHTML]="${config}.message"></div>`;
-          return this.getHtml(input, element, fieldName, labelPos, labelSize);           
-       
+        return this.getHtml(input, element, fieldName, labelPos, labelSize);
+
     }
     private _getSelectTemplate(fieldName: string, input: any, config: string) {
         let labelSize = input.labelSize || this.options.labelSize || 3,
@@ -596,12 +620,12 @@ export class juForm implements OnInit, OnDestroy, OnChanges {
                             <option *ngFor="let v of ${config}.data" [value]="v.value">{{v.name}}</option>
                         </select>
                         <div *ngIf="!${config}.hideMsg" class="alert alert-danger" [innerHTML]="${config}.message"></div>`;
-           return this.getHtml(input, element, fieldName, labelPos, labelSize);             
-       
+        return this.getHtml(input, element, fieldName, labelPos, labelSize);
+
     }
-    private getHtml(input:any, element:any, fieldName:string, labelPos:string, labelSize:any){
-        let label=(input.label || fieldName)+this.getRequiredInfo(input);
-         if (this.isVertical) {
+    private getHtml(input: any, element: any, fieldName: string, labelPos: string, labelSize: any) {
+        let label = (input.label || fieldName) + this.getRequiredInfo(input);
+        if (this.isVertical) {
             return labelPos === 'top' ?
                 `<div class="form-group" ${input.exp}>
                         <label>${label}</label>                        

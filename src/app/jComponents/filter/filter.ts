@@ -3,7 +3,6 @@ import {Component, OnInit, ElementRef, Input,DynamicComponentLoader,
 import {FormBuilder, Validators, ControlGroup, FORM_DIRECTIVES} from '@angular/common';
 import {juSelect, Datetimepicker} from '../juForm';
 import{FilterService} from './filterSvc';
-import { AppService } from '../../shared';
 import {Subject} from 'rxjs/Subject';
 @Component({
     selector:'.filter-mobile, .filter-web',
@@ -21,12 +20,12 @@ export class FilterComponent implements OnInit, OnDestroy{
     constructor( private _elementRef:ElementRef,
      private loader:DynamicComponentLoader,
       private filterSvc:FilterService,
-       private appService:AppService, private injector:Injector){
+      private injector:Injector){
        
     }
     ngOnInit(){ 
         if(!this.options.layout){
-            this.options.layout=this.appService.mobileCheck()?'stack':'flow';
+            this.options.layout='flow';
         }               
         this.options.labelPosition=this.options.labelPosition||'top';
         this.options.labelSize= this.options.labelSize||3;          

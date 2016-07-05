@@ -2,5 +2,6 @@ export * from './filter';
 export * from './juForm';
 export * from './juGrid';
 export * from './juPager';
-export * from './menu';
+export * from './juMenu';
+export * from './uiService';
 

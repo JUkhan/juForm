@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import {juForm, FV} from '../Framework';
+import {juForm, FV, FormOptions} from '../jComponents';
+//import {FormOptions} from 'jui';
 @Component({
   selector: 'my-home',
   templateUrl: './home.component.html',
@@ -10,6 +11,24 @@ export class HomeComponent implements OnInit {
 
   constructor() {
     // Do stuff
+    var x:FormOptions={
+         title:'233',
+         refreshBy:{name:''},
+        labelPos:'left',
+        inputs:[
+            {field:'name', label:'Name', type:'juSelect' },
+            {field:'name', label:'Name'},
+            [{field:'ddd'},{field:''}]
+        ],
+        tabs:{tabName:[
+            {field:'name', label:'Name', items:[
+              [ {field:'', label:''}]
+            ]}
+        ]},
+       
+        buttons:{string:{type:'submit', click:_=>{}}}
+        };
+
   }
 
   ngOnInit() {
@@ -25,7 +44,7 @@ export class HomeComponent implements OnInit {
                         type: 'groupLayout', items: [
                             [{
                                 groupName: 'Group-1', size: 8, inputs: [
-                                    { field: 'name', label: 'Name1', type: 'file', validators: [FV.required, FV.minLength(5)] },
+                                    { field: 'name', label: 'Name1', type: 'text', validators: [FV.required, FV.minLength(5)] },
                                     { field: 'country', change: e => console.log(e), label: 'Country', type: 'select', validators:FV.required },
                                     { field: 'address', label: 'Address', type: 'text', validators:FV.required },
                                     [{ field: 'age',labelSize: 4, size:6}, { field: 'address1.post', label:'Post', type:'text', size:4, offset:2, validators:FV.required}],
@@ -49,7 +68,7 @@ export class HomeComponent implements OnInit {
                                     }]
                                 ]
                             }],
-                            [{
+                            {
                                 groupName: 'Group-3', tabs: {
                                     Oxygen: [{ field: 'oxygen', label: 'Oxygen', type: 'text' }],
                                     h20: [
@@ -57,7 +76,7 @@ export class HomeComponent implements OnInit {
                                         {tabConfig: true, enable: (form, model) => { return !!model.oxygen; }}
                                     ]
                                 }
-                            }]
+                            }
 
                         ]
                     }
@@ -104,7 +123,8 @@ export class HomeComponent implements OnInit {
             .setData('address2.country', [{ name: 'Bangladesh', value: 1 }, { name: 'India', value: 2 }])
             //.setDetilData('district',[{name: 'Tangail', value: 1 },{name: 'Ghatail', value: 2 }])
             //.valueChanges('name').debounceTime(300).subscribe(query => console.log(query));
-        //form.showModal();   
+        //form.showModal();  
+         
     }
    
     changeThana(e) {   

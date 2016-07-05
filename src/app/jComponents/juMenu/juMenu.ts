@@ -1,13 +1,13 @@
 import {Component, OnInit, Input} from '@angular/core';
 
 @Component({
-    selector: '[menu], menu',
-    template:require('./menu.html'),
+    selector: '[juMenu], juMenu',
+    template:require('./juMenu.html'),
     host:{'class':'collapse navbar-collapse'},
-    styleUrls: ['./menu.css']
+    styleUrls: ['./juMenu.css']
 })
 
-export class menuComponent implements OnInit {
+export class juMenu implements OnInit {
     
     @Input() menuData:any[];
     constructor() { }

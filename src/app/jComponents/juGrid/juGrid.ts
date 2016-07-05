@@ -1,7 +1,8 @@
-import {Component, OnInit, OnChanges, ChangeDetectionStrategy, ChangeDetectorRef,Injector,
-    Input, Output, EventEmitter, ComponentRef, ElementRef, DynamicComponentLoader, ViewEncapsulation} from '@angular/core';
+import {Component, OnInit, OnChanges, ChangeDetectionStrategy, ChangeDetectorRef,
+  OnDestroy,ViewContainerRef, Input, Output, EventEmitter,
+   ComponentRef, ElementRef, DynamicComponentLoader, ViewEncapsulation} from '@angular/core';
 import {juForm, juSelect} from '../juForm';
-import {juPagerComponent} from '../juPager';
+import {juPager} from '../juPager';
 
 @Component({
     selector: '.juGrid, [juGrid]', encapsulation: ViewEncapsulation.None,
@@ -15,35 +16,32 @@ import {juPagerComponent} from '../juPager';
                     </span>
                 </div>            
         </div>
-	</div>
-    <div id="juGridChild" ></div>
+	</div>    
     <juForm *ngIf="options.crud" viewMode="popup" title="Sample Form" (onLoad)="onFormLoad($event)" [options]="options.formDefs">
-             
     </juForm>
     `,
     directives: [juForm],
-    changeDetection: ChangeDetectionStrategy.OnPush
+    changeDetection: ChangeDetectionStrategy.Default
 })
 
-export class juGrid implements OnInit, OnChanges {
+export class juGrid implements OnInit, OnChanges, OnDestroy {
     @Input() options: any = {};
     private _oldItem: any = null;
     private _updtedItem: any = null;
     private _searchInActive: boolean = false;
-    @Input() data;
+    @Input() data=[];
     @Output() onLoad = new EventEmitter();
-
+    private appRef:any
     dynamicComponent: ComponentRef<any>;
     constructor(
         private _elementRef: ElementRef,
         private loader: DynamicComponentLoader,
-        private cd: ChangeDetectorRef,
-        private injector:Injector
-    ) { }
-    ngOnChanges(changes) {   
-             
-        if (changes.data && this.dynamicComponent) {
-            this.dynamicComponent.instance.setData(this.data);
+        //private cd: ChangeDetectorRef,      
+        private viewContainerRef:ViewContainerRef       
+    ) {}
+    ngOnChanges(changes) {            
+        if (this.dynamicComponent) {
+            this.dynamicComponent.instance.setData(this.data);           
         }
     }
     addItem(item: any) {       
@@ -58,18 +56,17 @@ export class juGrid implements OnInit, OnChanges {
         this._updateRecord();
         this.options.message = message;
         this.options.messageCss = messageCss;
-        this.cd.markForCheck();
+        //this.cd.markForCheck();
         if (this.dynamicComponent && this.dynamicComponent.instance) {
             this.dynamicComponent.instance.showMessage(message, messageCss);
         }
-        let tid = setTimeout(() => {
+        async_call(() => {
             this.options.message = '';
-            this.cd.markForCheck();
+            //this.cd.markForCheck();
             if (this.dynamicComponent) {
                 this.dynamicComponent.instance.showMessage('', messageCss);
-            }
-            clearTimeout(tid);
-        }, 3000);
+            }            
+        });
     }
     _updateRecord() {
         if (this._oldItem && this._updtedItem) {
@@ -115,7 +112,9 @@ export class juGrid implements OnInit, OnChanges {
         if (!('search' in this.options)) {
             this.options.search = true;
         }
-
+         if (!('trClass' in this.options)) {
+            this.options.trClass =()=>null;
+        }
         if (this.options.crud) {
             this.options.newItem = () => {
                 this._oldItem = null;
@@ -160,16 +159,24 @@ export class juGrid implements OnInit, OnChanges {
     }
     private loadComponent() {
 
-        this.loader.loadAsRoot(getDynamicComponent(this.getDynamicConfig()), '#juGridChild', this.injector)
+        this.loader.loadNextToLocation(getComponent(this.getDynamicConfig()),  this.viewContainerRef)
             .then(com => {
                 this.dynamicComponent = com;
                 com.instance.config = this.options;
                 if (this.options.data || this.data) {
                     this.dynamicComponent.instance.setData(this.data || this.options.data);
                 }
-
+                if(!this.options.crud){
+                 async_call(()=> {this.onLoad.emit(this);});   
+                }                
+                return com;
             });
 
+    }
+    ngOnDestroy(){
+        if(this.dynamicComponent){             
+             this.dynamicComponent.destroy();
+        }
     }
     private getDynamicConfig() {
         var tpl: any[] = [];
@@ -205,9 +212,12 @@ export class juGrid implements OnInit, OnChanges {
         tpl.push('</tr>');
         tpl.push('</thead>');
         tpl.push('<tbody>');
-        tpl.push('<tr *ngFor="#row of viewList;#i = index; #last = last">');
+        tpl.push('<tr [ngClass]="config.trClass(row, i, f, l)" *ngFor="let row of viewList;let i = index;let f=first;let l = last">');
         this.options.columnDefs.forEach((item, index) => {
-            tpl.push('<td');
+            tpl.push('<td ');
+            if (item.tdClass){
+                tpl.push(`[ngClass]="config.columnDefs[${index}].tdClass(row, i, f, l)"`);
+            }
             if (item.action) {
                 tpl.push('>');
                 item.action.forEach((ac, aci) => {
@@ -224,7 +234,7 @@ export class juGrid implements OnInit, OnChanges {
 
             }
             else if (item.cellRenderer) {
-                tpl.push(` [innerHTML]="config.columnDefs[${index}].cellRenderer(row,i,last)">`);
+                tpl.push(` [innerHTML]="config.columnDefs[${index}].cellRenderer(row,i,f, l)">`);
             }
             else if (item.field) {
                 tpl.push(`>{{row.${item.field}}}`);
@@ -276,25 +286,26 @@ export class juGrid implements OnInit, OnChanges {
     }
 }
 
-function getDynamicComponent(obj: any) {
+function getComponent(obj: any) {
     @Component({
-        selector: 'dynamic-grid-component',
+        selector: 'div',
         template: obj.tpl,
-        directives: [juPagerComponent, juForm]
+        directives: [juPager, juForm],
+        encapsulation: ViewEncapsulation.None
     })
     class DynamicComponent {
         data: any = [];
         config: any = {};
         formObj: juForm;
         viewList: any[] = [];
-        private pager: juPagerComponent;
+        private pager: juPager;
         constructor(private el: ElementRef) {
 
         }
         ngOnInit() {
 
         }
-        pagerInit(pager: juPagerComponent) {
+        pagerInit(pager: juPager) {
             this.pager = pager;
             this.config.api.pager = pager;
             this.pager.sspFn = this.config.sspFn;
@@ -311,11 +322,10 @@ function getDynamicComponent(obj: any) {
             }
         }
         setData(data) {
-
             this.data = data;
         }
         onPageChange(list) {
-            this.viewList = list;
+          async_call(()=>{this.viewList = list;});
         }
         addItem(item) {
             this.data.unshift(item);
@@ -336,4 +346,10 @@ function getDynamicComponent(obj: any) {
         
     }
     return DynamicComponent;
+}
+function async_call(fx: Function, time = 0) {
+    let tid = setTimeout(() => {
+        fx();
+        clearTimeout(tid);
+    }, time);
 }

@@ -9,10 +9,10 @@ import { routes } from './app/app.routes';
 
 
 // depending on the env mode, enable prod mode or add debugging modules
-if (process.env.ENV === 'build') {
-  enableProdMode();
-}
-
+// if (process.env.ENV === 'build') {
+//   enableProdMode();
+// }
+enableProdMode();
 bootstrap(AppComponent, [
     // These are dependencies of our App
     HTTP_PROVIDERS,   
