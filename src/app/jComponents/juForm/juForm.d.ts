@@ -74,9 +74,9 @@ export interface FormOptions{
     labelPos?: 'left'|'top';
     labelSize?: number;
     refreshBy?:{};    
-    inputs?:FormElement[];
+    inputs?:[FormElement|any];
     tabs?:TABS;
-    buttons?:{[key:string]:{type:'submit'|'cancel'|'button',cssClass?:string,  click?:(event:any)=>void}};
+    buttons?:{[key:string]:{type:'submit'|'close'|'button',cssClass?:string,  click?:(event:any)=>void}};
     api?:juForm;
     [key: string]:any;
     

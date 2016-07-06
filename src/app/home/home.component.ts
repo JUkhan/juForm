@@ -10,8 +10,7 @@ import {juForm, FV, FormOptions, FormElement} from '../jComponents';
 export class HomeComponent implements OnInit {
 
     constructor() {
-        // Do stuff
-               
+        // Do stuff               
     }
 
     ngOnInit() {
@@ -20,7 +19,7 @@ export class HomeComponent implements OnInit {
     myOptions: FormOptions;
     initForm() {
         
-        this.myOptions = {
+        this.myOptions = {            
             labelPos: 'left', labelSize: 2, refreshBy: { products: [{ name: 'Jasim', price: 2 }, { name: 'JArif' }], address1: {}, address2: {} },
             tabs: {
                 'Tab-1': [

@@ -37,8 +37,7 @@ export class juForm implements OnInit, OnDestroy, OnChanges {
     @Output('onLoad')
     onLoad = new EventEmitter();
     isUpdate: boolean = false;
-    popupForm: any;
-    private validForm$ = new Subject();
+    popupForm: any;    
     dynamicComponent: ComponentRef<any>;
     constructor(private _elementRef: ElementRef,
         private loader: DynamicComponentLoader,

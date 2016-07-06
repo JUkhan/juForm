@@ -1,5 +1,5 @@
 import {Component, OnInit, ViewEncapsulation} from '@angular/core';
-import {juGrid, FV} from '../../jComponents';
+import {juGrid, FV, GridOptions} from '../../jComponents';
 import {Observable} from 'rxjs';
 import {ApiService} from '../../shared';
 @Component({
@@ -14,16 +14,20 @@ import {ApiService} from '../../shared';
 })
 
 export class gridExample implements OnInit {
-    scholarGridOptions:any;
+    scholarGridOptions:GridOptions;
     scholarList: any[];
     constructor(private service:ApiService) { }
 
     ngOnInit() {
         this.initScholar();
-               
+         var x:GridOptions={
+                pageSize:4
+         };  
+
+           
      }
      private onLoad(){        
-        this.service.get('scholar').subscribe(list=>{this.scholarList=list;});
+        this.service.get('scholar').subscribe(list=>{this.scholarList=list;});      
      }
     private initScholar() {
         this.scholarGridOptions = {
@@ -45,12 +49,12 @@ export class gridExample implements OnInit {
                     { field: 'address', label: 'Address', type: 'text', validators:FV.required },
                     { field: 'description', label: 'Description', type: 'textarea' }
                 ],
-                buttons: {
-                    'Save Change': { type: 'submit', cssClass: 'btn btn-success', click: this.submitScholar.bind(this) },
-                    'Close': { type: 'close', cssClass: 'btn btn-default' }
-                }
+                 buttons: {
+                     'Save Change': { type: 'submit', cssClass: 'btn btn-success', click: this.submitScholar.bind(this) },
+                     'Close': { type: 'close', cssClass: 'btn btn-default' }
+                 }
             },
-            removeItem: (data) => {
+            removeItem: data => {
                 this.service.delete('scholar/' + data.id).subscribe(res => {
                     this.scholarGridOptions.api.grid.showMessage('Data removed successfully');
                     this.scholarGridOptions.api.grid.removeItem(data);                  
@@ -58,7 +62,7 @@ export class gridExample implements OnInit {
             }
         };
     }
-    private submitScholar() {
+    private submitScholar(e:any) {
         if (this.scholarGridOptions.api.form.isUpdate) {
             this.service.put('scholar', this.scholarGridOptions.api.form.getModel())
                 .subscribe(res => {
