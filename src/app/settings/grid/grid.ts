@@ -31,8 +31,8 @@ export class gridExample implements OnInit {
      }
     private initScholar() {
         this.scholarGridOptions = {
-            pageSize:3,crud:true,
-            trClass:(row,index, isFirst, isLast)=>({gray:isLast}),
+            pageSize:3,
+            trClass:(row,index, isFirst, isLast)=>({gray:isLast}),            
             columnDefs: [
                 { headerName: 'Name', field: 'name' },
                 { headerName: 'Education', field: 'education' },

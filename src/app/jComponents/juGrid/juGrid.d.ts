@@ -6,6 +6,7 @@ export interface ColumnDefs{
     field:string;
     tdClass?:(row:any, index:number, isFirst:boolean, isLast:boolean)=>{};
     cellRenderer?:(row:any, index:number, isFirst:boolean, isLast:boolean)=>string;
+    action?:[{title:string, icon:string, click:(row:any)=>void}];
 }
 export interface GridOptions{
     linkPages?:number;
@@ -23,6 +24,7 @@ export interface GridOptions{
     api?:{form:juForm, grid:juGrid};
     sspFn?:(params:{pageSize:number,pageNo:number})=>Observable<{totalPage:number, data:any[]}>;
     onFormLoad?: (form: juForm) =>void;
+   
 }
 
  
