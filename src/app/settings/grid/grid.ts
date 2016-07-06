@@ -30,13 +30,12 @@ export class gridExample implements OnInit {
         this.service.get('scholar').subscribe(list=>{this.scholarList=list;});      
      }
     private initScholar() {
-        this.scholarGridOptions = {
-            pageSize:3,
-            trClass:(row,index, isFirst, isLast)=>({gray:isLast}),            
+        this.scholarGridOptions = {            
+            pageSize:3,                      
             columnDefs: [
                 { headerName: 'Name', field: 'name' },
-                { headerName: 'Education', field: 'education' },
-                { headerName: 'Address', field: 'address', tdClass:_=>({green:true}), cellRenderer:_=>`<b class="red">${_.address}</b>`},
+                { headerName: 'Education', field: 'education'},
+                { headerName: 'Address', field: 'address'},
                 { headerName: 'Description', field: 'description' }
             ],
             formDefs: {

@@ -9,6 +9,7 @@ export interface ColumnDefs{
     action?:[{title:string, icon:string, click:(row:any)=>void}];
 }
 export interface GridOptions{
+    classNames?:string;
     linkPages?:number;
     pageSize?:number;
     confirmMessage?:number;
@@ -22,7 +23,7 @@ export interface GridOptions{
     columnDefs?:[ColumnDefs];
     removeItem?: (data:any) =>void;
     api?:{form:juForm, grid:juGrid};
-    sspFn?:(params:{pageSize:number,pageNo:number})=>Observable<{totalPage:number, data:any[]}>;
+    sspFn?:(params:{pageSize:number,pageNo:number, searchText:string})=>Observable<{totalPage:number, data:any[]}>;
     onFormLoad?: (form: juForm) =>void;
    
 }
