@@ -1,4 +1,7 @@
- 
+import {juForm} from './juForm';
+export declare type TABS={[key:string]:[FormElement|any]};
+
+
 export interface FormElement{
     field?:string;
     label?:string;
@@ -38,21 +41,21 @@ export interface FormElement{
      * {groupName:'Group-1'  items:[]|tabs|inputs}
      * ]
      */
-    items?:Array<FormElement|Array<FormElement>>;
+    items?:[FormElement|any];
      /**
      * This is groupLayout property
      * {type:'groupLayout', items:[
      * {groupName:'Group-1', inputs:[]}
      * ]
      */
-    inputs?:Array<FormElement|Array<FormElement>>;
+    inputs?:[FormElement|any];
      /**
      * This is groupLayout property
      * {type:'groupLayout', items:[
      * {groupName:'Group-1' tabs:{...}}
      * ]
      */
-    tabs?:{tabName?:Array<FormElement>};
+    tabs?:TABS;
     /**
      * tabConfig property is required if you use enable tab property
      *  {tabConfig: true, enable: (form, model) => { return !!model.firstName; }}
@@ -65,12 +68,16 @@ export interface FormElement{
     enable?:(form:any, model:any)=>boolean;
     content?:string;
 }
+
 export interface FormOptions{
     title?:string;
     labelPos?: 'left'|'top';
     labelSize?: number;
     refreshBy?:{};    
-    inputs?:Array<FormElement|Array<FormElement>>;
-    tabs?:{tabName?:Array<FormElement>};
-    buttons?:{string:{type:'submit'|'cancel'|'button',cssClass?:string, icon?:string, click?:(event:any)=>void}};
+    inputs?:FormElement[];
+    tabs?:TABS;
+    buttons?:{[key:string]:{type:'submit'|'cancel'|'button',cssClass?:string,  click?:(event:any)=>void}};
+    api?:juForm;
+    [key: string]:any;
+    
 }

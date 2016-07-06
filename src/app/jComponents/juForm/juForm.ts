@@ -4,7 +4,7 @@ import {Validators} from '@angular/common';
 import {juSelect} from './juSelect';
 import {Datetimepicker} from './Datetimepicker';
 import {CkEditor, FileSelect} from './CkEditor';
-import {Observable} from 'rxjs/observable';
+import {Observable, Subject} from 'rxjs';
 import * as _ from 'lodash';
 declare var jQuery: any;
 
@@ -38,13 +38,47 @@ export class juForm implements OnInit, OnDestroy, OnChanges {
     onLoad = new EventEmitter();
     isUpdate: boolean = false;
     popupForm: any;
+    private validForm$ = new Subject();
     dynamicComponent: ComponentRef<any>;
     constructor(private _elementRef: ElementRef,
         private loader: DynamicComponentLoader,
         private viewContainerRef: ViewContainerRef) { }
 
     valueChanges(key: string): Observable<any> {
-        return this.dynamicComponent.instance.valueChanges(key);
+        if (key === 'form') {
+            let _observers: any[] = [];
+            for (var prop in this.options._events) {
+                if (prop !== 'undefined') {
+                    _observers.push(this.valueChanges(prop));
+                }
+            }
+            return Observable.merge(..._observers).map(_ => this.getModel());
+        }
+        let item = this.options._events[key];
+        if (item && item.field) {
+            let div = this._elementRef.nativeElement.nextSibling.firstChild;
+            switch (item.type) {
+
+                case 'juSelect':
+                    return item.field.api.valueChanges;
+                case 'select':
+                    return Observable.fromEvent(div.querySelector('.' + item.field.field.split('.').join('_')), 'change')
+                        .map((_: any) => ({ value: _.target.value, sender: _.target, form: this }));
+                default:
+                    return Observable.fromEvent(div.querySelector('.' + item.field.field.split('.').join('_')), 'keyup')
+                        .map((_: any) => _.target.value);
+            }
+
+        }
+        return Observable.empty();
+    }
+    get valid() {
+        for (var prop in this.options._events) {
+            if (!this.options._events[prop].hideMsg) {
+                return false;
+            }
+        }
+        return true;
     }
     ngOnChanges(changes) {
 
@@ -98,15 +132,15 @@ export class juForm implements OnInit, OnDestroy, OnChanges {
                         this.setModel(this.options.refreshBy);
                     }
                     if (this.isTab) {
-                        let firstProp, index=0;
+                        let firstProp, index = 0;
                         for (var prop in this.activeTabs) {
-                            com.instance.tabClick(prop, null, this.activeTabs[prop]); 
-                            if(index==0){
-                                firstProp=prop;
-                            } 
-                            index++;                         
+                            com.instance.tabClick(prop, null, this.activeTabs[prop]);
+                            if (index == 0) {
+                                firstProp = prop;
+                            }
+                            index++;
                         }
-                        com.instance.tabClick(firstProp, null, this.activeTabs[firstProp]); 
+                        com.instance.tabClick(firstProp, null, this.activeTabs[firstProp]);
                     } else {
                         com.instance.focus();
                     }
@@ -296,7 +330,7 @@ export class juForm implements OnInit, OnDestroy, OnChanges {
         else if (this.options.tabs) {
             this.tabid++;
             this.isTab = true;
-            template.push('<ul class="nav nav-tabs">');
+            template.push('<div class="card"><ul class="nav nav-tabs">');
             var index = 0;
             for (var prop in this.options.tabs) {
                 if (index == 0) {
@@ -315,7 +349,7 @@ export class juForm implements OnInit, OnDestroy, OnChanges {
                 template.push('</div>');
 
             }
-            template.push('</div>')
+            template.push('</div></div>')
         }
         this._setButtons(obj, template);
         template.push('</div>');
@@ -426,8 +460,10 @@ export class juForm implements OnInit, OnDestroy, OnChanges {
             }
             groupTpl.push(nestedTpl.join(''));
         } else {
-            groupTpl.push(`<fieldset class="group-${'' + index + gindex}">`);
-            groupTpl.push(`<legend>${group.groupName}</legend>`);
+            if (!group.isContainer) {
+                groupTpl.push(`<fieldset class="group-${'' + index + gindex}">`);
+                groupTpl.push(`<legend>${group.groupName}</legend>`);
+            }
             //group inputs and tabs 
             if (group.items) {
                 let nestedTpl = [];
@@ -447,7 +483,9 @@ export class juForm implements OnInit, OnDestroy, OnChanges {
                 }
             }
             //end of group inputs and tabs
-            groupTpl.push('</fieldset>');
+            if (!group.isContainer) {
+                groupTpl.push('</fieldset>');
+            }
         }
         groupTpl.push('</div>');
     }
@@ -461,7 +499,7 @@ export class juForm implements OnInit, OnDestroy, OnChanges {
         }
         else if (group.tabs) {
             this.isTab = true;
-            template.push('<ul class="nav nav-tabs">');
+            template.push('<div class="card"><ul class="nav nav-tabs">');
             var index = 0;
             for (var prop in group.tabs) {
                 if (index == 0) {
@@ -479,7 +517,7 @@ export class juForm implements OnInit, OnDestroy, OnChanges {
                 this._setInputs(obj, template, group.tabs[prop], `${ref}.tabs['${prop}']`);
                 template.push('</div>');
             }
-            template.push('</div>');
+            template.push('</div></div>');
         }
 
         return template.join('');
@@ -566,9 +604,9 @@ export class juForm implements OnInit, OnDestroy, OnChanges {
             cfield = fieldName.split('.').join('_');
         input.type = input.type || 'text';
         let element = (input.type === 'textarea') ?
-            `<textarea (keyup)="vlidate_input(model.${fieldName}, ${config})" [disabled]="${config}.disabled" [(ngModel)]="model.${fieldName}" class="form-control" placeholder="Enter ${input.label || fieldName}"></textarea>`
+            `<textarea (keyup)="vlidate_input(model.${fieldName}, ${config})" [disabled]="${config}.disabled" [(ngModel)]="model.${fieldName}" class="form-control ${cfield}" placeholder="Enter ${input.label || fieldName}"></textarea>`
             :
-            `<input type="${input.type}" (keyup)="vlidate_input(model.${fieldName}, ${config})" [disabled]="${config}.disabled"   [(ngModel)]="model.${fieldName}" class="form-control" placeholder="Enter ${input.label || fieldName}">
+            `<input type="${input.type}" (keyup)="vlidate_input(model.${fieldName}, ${config})" [disabled]="${config}.disabled"   [(ngModel)]="model.${fieldName}" class="form-control ${cfield}" placeholder="Enter ${input.label || fieldName}">
             <div *ngIf="!${config}.hideMsg" class="alert alert-danger" [innerHTML]="${config}.message"></div>`;
         return this.getHtml(input, element, fieldName, labelPos, labelSize);
 
@@ -615,7 +653,7 @@ export class juForm implements OnInit, OnDestroy, OnChanges {
         let labelSize = input.labelSize || this.options.labelSize || 3,
             labelPos = input.labelPos || this.options.labelPos || 'top',
             cfield = fieldName.split('.').join('_'),
-            element = `<select (click)="vlidate_input(model.${fieldName}, ${config})" (change)="${config}.change({value:${cfield}.value, sender:${cfield}, form:myForm})" #${cfield} [disabled]="${config}.disabled" [(ngModel)]="model.${fieldName}" class="form-control">
+            element = `<select (click)="vlidate_input(model.${fieldName}, ${config})" (change)="${config}.change({value:${cfield}.value, sender:${cfield}, form:myForm})" #${cfield} [disabled]="${config}.disabled" [(ngModel)]="model.${fieldName}" class="form-control ${cfield}">
                             <option value="">{{${config}.emptyOptionText||'Select option'}}</option>
                             <option *ngFor="let v of ${config}.data" [value]="v.value">{{v.name}}</option>
                         </select>
@@ -858,12 +896,15 @@ function getComponent(obj: any) {
             }
             return field.hideMsg;
         }
+
         isValid() {
+
             for (var prop in this.config._events) {
                 if (!this.config._events[prop].hideMsg) {
                     return false;
                 }
             }
+
             return true;
         }
         hideValidationMessage(flag: boolean = true) {

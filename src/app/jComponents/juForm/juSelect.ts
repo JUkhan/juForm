@@ -4,6 +4,7 @@ import {Control, ControlGroup, FormBuilder, FORM_DIRECTIVES} from "@angular/comm
 
 //import {AnimationBuilder, CssAnimationBuilder} from 'angular2/animate';
 import { uiService } from '../uiService';
+import {Subject} from 'rxjs';
 declare var jQuery: any;
 
 @Component({
@@ -99,10 +100,11 @@ export class juSelect implements OnInit, OnChanges {
     @Input() disabled: boolean = false;
     @Input() config: any = {};
     @Input('myForm') myForm: any;
-
+    valueChanges:Subject<any>
 
     @Output('option-change') onChange = new EventEmitter();
     options: juOption[] = [];
+    spliter:string='$#$';
     searchForm: any;
     searchControl = new Control('');
     searchData: any;
@@ -115,6 +117,8 @@ export class juSelect implements OnInit, OnChanges {
     //[style.display]="visible?'block':'none'" [hidden]="!visible"   
     constructor(fb: FormBuilder, private el: ElementRef, private uiService: uiService) {
         this.searchControl.valueChanges.subscribe(this.search.bind(this));
+        this.valueChanges=new Subject();
+       
     }
     ngOnChanges(changes) {
 
@@ -126,7 +130,7 @@ export class juSelect implements OnInit, OnChanges {
 
         if (val) {
             if (Array.isArray(val)) {
-                this.selectItems(val.join('#$#'));
+                this.selectItems(val.join(this.spliter));
             } else {
                 this.viewMode === 'checkbox' ? this.selectItems(val) : this.selectItem(val);
             }
@@ -145,14 +149,14 @@ export class juSelect implements OnInit, OnChanges {
         let _val = this._getValueByPropertyName();
         if (this.config.isFilter) {
             if (_val) {
-                let tid = setTimeout(() => { this.value = _val; clearTimeout(tid); }, 0);
+                async_call(() => { this.value = _val;});
             } else if (val && val.length > 0) {
                 this._setValueByPropertyName(val[0].value);
-                let tid = setTimeout(() => { this.value = _val; clearTimeout(tid); }, 0);
+               async_call(() => { this.value = _val; });
             }
         } else {
             if (_val) {
-                let tid = setTimeout(() => { this.value = _val; clearTimeout(tid); }, 0);
+                async_call(() => { this.value = _val; });
             }
         }
     }
@@ -243,7 +247,7 @@ export class juSelect implements OnInit, OnChanges {
     selectOption(option: juOption) {
         if (this.viewMode === 'select' || this.viewMode === 'radio') {
             this.options.forEach(op => op.isSelected = (op === option));
-            let tid = setTimeout(() => { this.visible = !this.visible; this.animate(); clearTimeout(tid); }, 100);
+            async_call(() => { this.visible = !this.visible; this.animate();}, 100);
             this.selectedText = option.data.name;
         }
         else if (this.viewMode === 'checkbox') {
@@ -292,12 +296,13 @@ export class juSelect implements OnInit, OnChanges {
         if (valueSelected) {
             this._setValueByPropertyName(this.value);
             this.onChange.next({ value: this.value, sender: this, form: this.myForm });
+            this.valueChanges.next({ value: this.value, sender: this, form: this.myForm });
         }
     }
     selectItems(values_or_names: any) {
         if (!values_or_names) return;
         this.checkAll(false, false);
-        var spliter = '#$#', len = 0;
+        var spliter = this.spliter, len = 0;
         if (Array.isArray(values_or_names)) {
             len = values_or_names.length;
             values_or_names = values_or_names.join(spliter);
@@ -322,6 +327,7 @@ export class juSelect implements OnInit, OnChanges {
         if (valueSelected) {
             this._setValueByPropertyName(this.value);
             this.onChange.next({ value: this.value, sender: this, form: this.myForm });
+            this.valueChanges.next({ value: this.value, sender: this, form: this.myForm });
         }
     }
     getNames(): any {
@@ -335,7 +341,7 @@ export class juSelect implements OnInit, OnChanges {
             });
         if (Array.isArray(this._getValueByPropertyName()))
             return res;
-        return res.join('#$#');
+        return res.join(this.spliter);
     }
     getValues(): any {
         var res: any[] = [];
@@ -348,7 +354,7 @@ export class juSelect implements OnInit, OnChanges {
             });
         if (Array.isArray(this._getValueByPropertyName()))
             return res;
-        return res.join('#$#');
+        return res.join(this.spliter);
     }
     getSelectedItems() {
         var res: any[] = [];
@@ -386,29 +392,24 @@ export class juSelect implements OnInit, OnChanges {
         if (this.model && this.propertyName && this.method) {
             this._setValueByPropertyName(this.method === 'getValues' ? this.getValues() : this.getNames());
             this.onChange.next({ value: this._getValueByPropertyName(), sender: this, form: this.myForm });
-
+            this.valueChanges.next({ value: this._getValueByPropertyName(), sender: this, form: this.myForm });    
         }
     }
     hasError() {      
         let vals = this.getValues(), res;
         if (Array.isArray(vals)) {
-            vals = vals.join('#$#');
-        }
-        /*if (flag) {
-            res = vals ? true : false;
-        } else {
-            res = (this.focusToValidate ? !vals : false);
-        }
-        this.myForm.options._events[this.config.field].hideMsg=!res;
-        
-        return res;*/
-         //vlidate_input(val: any, field: any, internal = false)
+            vals = vals.join(this.spliter);
+        }        
         this.myForm.dynamicComponent.instance
-        .vlidate_input(vals, this.config,!this.focusToValidate);
-        //console.log(this.config.hideMsg);
+        .vlidate_input(vals, this.config,!this.focusToValidate);       
         return !this.config.hideMsg;
     }
 
 }
-
+function async_call(fx: Function, time = 0) {
+    let tid = setTimeout(() => {
+        fx();
+        clearTimeout(tid);
+    }, time);
+}
 
