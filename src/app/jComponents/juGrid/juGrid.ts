@@ -1,6 +1,6 @@
 import {Component, OnInit, OnChanges, ChangeDetectionStrategy, ChangeDetectorRef,
-  OnDestroy,ViewContainerRef, Input, Output, EventEmitter,
-   ComponentRef, ElementRef, DynamicComponentLoader, ViewEncapsulation} from '@angular/core';
+    OnDestroy, ViewContainerRef, Input, Output, EventEmitter,
+    ComponentRef, ElementRef, DynamicComponentLoader, ViewEncapsulation} from '@angular/core';
 import {juForm, juSelect} from '../juForm';
 import {juPager} from '../juPager';
 
@@ -29,22 +29,22 @@ export class juGrid implements OnInit, OnChanges, OnDestroy {
     private _oldItem: any = null;
     private _updtedItem: any = null;
     private _searchInActive: boolean = false;
-    @Input() data=[];
+    @Input() data = [];
     @Output() onLoad = new EventEmitter();
-    private appRef:any
+    private appRef: any
     dynamicComponent: ComponentRef<any>;
     constructor(
         private _elementRef: ElementRef,
         private loader: DynamicComponentLoader,
         //private cd: ChangeDetectorRef,      
-        private viewContainerRef:ViewContainerRef       
-    ) {}
-    ngOnChanges(changes) {            
+        private viewContainerRef: ViewContainerRef
+    ) { }
+    ngOnChanges(changes) {
         if (this.dynamicComponent) {
-            this.dynamicComponent.instance.setData(this.data);           
+            this.dynamicComponent.instance.setData(this.data);
         }
     }
-    addItem(item: any) {       
+    addItem(item: any) {
         if (this.dynamicComponent) {
             if (this._searchInActive) {
                 this.data.unshift(item);
@@ -65,7 +65,7 @@ export class juGrid implements OnInit, OnChanges, OnDestroy {
             //this.cd.markForCheck();
             if (this.dynamicComponent) {
                 this.dynamicComponent.instance.showMessage('', messageCss);
-            }            
+            }
         });
     }
     _updateRecord() {
@@ -84,10 +84,10 @@ export class juGrid implements OnInit, OnChanges, OnDestroy {
         }
     }
     ngOnInit() {
-        
-       if(!this.options){
-          return;
-       }
+
+        if (!this.options) {
+            return;
+        }
         if (!('linkPages' in this.options)) {
             this.options.linkPages = 10;
         }
@@ -112,8 +112,8 @@ export class juGrid implements OnInit, OnChanges, OnDestroy {
         if (!('search' in this.options)) {
             this.options.search = true;
         }
-         if (!('trClass' in this.options)) {
-            this.options.trClass =()=>null;
+        if (!('trClass' in this.options)) {
+            this.options.trClass = () => null;
         }
         if (this.options.crud) {
             this.options.newItem = () => {
@@ -159,23 +159,23 @@ export class juGrid implements OnInit, OnChanges, OnDestroy {
     }
     private loadComponent() {
 
-        this.loader.loadNextToLocation(getComponent(this.getDynamicConfig()),  this.viewContainerRef)
+        this.loader.loadNextToLocation(getComponent(this.getDynamicConfig()), this.viewContainerRef)
             .then(com => {
                 this.dynamicComponent = com;
                 com.instance.config = this.options;
                 if (this.options.data || this.data) {
                     this.dynamicComponent.instance.setData(this.data || this.options.data);
                 }
-                if(!this.options.crud){
-                 async_call(()=> {this.onLoad.emit(this);});   
-                }                
+                if (!this.options.crud) {
+                    async_call(() => { this.onLoad.emit(this); });
+                }
                 return com;
             });
 
     }
-    ngOnDestroy(){
-        if(this.dynamicComponent){             
-             this.dynamicComponent.destroy();
+    ngOnDestroy() {
+        if (this.dynamicComponent) {
+            this.dynamicComponent.destroy();
         }
     }
     private getDynamicConfig() {
@@ -197,25 +197,26 @@ export class juGrid implements OnInit, OnChanges, OnDestroy {
 
         tpl.push(`<table class="${this.options.classNames}">`);
         tpl.push('<thead>');
-        tpl.push('<tr>');
-        this.options.columnDefs.forEach((item, index) => {
-            if (item.headerName === 'crud' && item.enable) {
-                tpl.push(`<th style="width:${item.width}px"><a href="javascript:;" title="New item" (click)="config.newItem()"><b class="fa fa-plus-circle"></b> </a></th>`);
-            } else {
-                if (item.width) {
-                    tpl.push(`<th style="width:${item.width}px">${item.headerName}</th>`);
-                } else {
-                    tpl.push(`<th>${item.headerName}</th>`);
-                }
-            }
-        });
-        tpl.push('</tr>');
+        // tpl.push('<tr>');
+        // this.options.columnDefs.forEach((item, index) => {
+        //     if (item.headerName === 'crud' && item.enable) {
+        //         tpl.push(`<th style="width:${item.width}px"><a href="javascript:;" title="New item" (click)="config.newItem()"><b class="fa fa-plus-circle"></b> </a></th>`);
+        //     } else {
+        //         if (item.width) {
+        //             tpl.push(`<th style="width:${item.width}px">${item.headerName}</th>`);
+        //         } else {
+        //             tpl.push(`<th>${item.headerName}</th>`);
+        //         }
+        //     }
+        // });
+        // tpl.push('</tr>');
+        tpl.push(this.calculateHeader(this.options.columnDefs));
         tpl.push('</thead>');
         tpl.push('<tbody>');
         tpl.push('<tr [ngClass]="config.trClass(row, i, f, l)" *ngFor="let row of viewList;let i = index;let f=first;let l = last">');
         this.options.columnDefs.forEach((item, index) => {
             tpl.push('<td ');
-            if (item.tdClass){
+            if (item.tdClass) {
                 tpl.push(`[ngClass]="config.columnDefs[${index}].tdClass(row, i, f, l)"`);
             }
             if (item.action) {
@@ -252,6 +253,94 @@ export class juGrid implements OnInit, OnChanges, OnDestroy {
     private renderForm(tpl: any[]) {
         tpl.push(`<juForm viewMode="popup" title="Sample Form" (onLoad)="onFormLoad($event)" [options]="config.formDefs"></juForm>`);
     }
+
+    //calculate header
+    private headerHtml: any[] = [];
+    private calculateHeader(hederDef) {
+        var colDef = [], rc = this.row_count(hederDef), i = 0;
+
+        while (i < rc) {
+            this.headerHtml[i] = [];
+            i++;
+        }
+        hederDef.forEach(it => {
+            this.traverseCell(it, rc, 0, colDef);
+        });        
+        if(rc>1){
+            this.options.columnDefs=colDef;
+        }
+        return this.headerHtml.map(_ => `<tr>${_.join('')}</tr>`).reduce((p, c) => p + c, '');
+    }
+    private traverseCell(cell, rs, headerRowFlag, colDef: any[]) {
+
+        if (cell.children) {
+
+            this.headerHtml[headerRowFlag].push('<th');
+            if (cell.children.length > 1) {
+                this.totalCS = 0;
+                this.getColSpan(cell);
+                this.headerHtml[headerRowFlag].push(` colspan="${this.totalCS}"`);
+            }
+            this.headerHtml[headerRowFlag].push(`>${cell.headerName}</th>`);
+            headerRowFlag++
+            let rc = rs, hf = headerRowFlag;
+            for (var i = 0; i < cell.children.length; i++) {
+                this.traverseCell(cell.children[i], --rs, headerRowFlag, colDef);
+                rs = rc;
+            }
+
+        } else {
+            colDef.push(cell);
+            this.headerHtml[headerRowFlag].push('<th');
+            if (rs > 1) {
+                this.headerHtml[headerRowFlag].push(` valign="bottom" rowspan="${rs}"`);
+            }
+            if (cell.width) {
+                this.headerHtml[headerRowFlag].push(` style="width:${cell.width}px"`);
+            }
+            if (cell.headerName === 'crud' && cell.enable) {
+                this.headerHtml[headerRowFlag].push(`><a href="javascript:;" title="New item" (click)="config.newItem()"><b class="fa fa-plus-circle"></b> </a></th>`);
+            } else {
+                this.headerHtml[headerRowFlag].push(`>${cell.headerName}</th>`);
+            }
+        }
+    }
+    private row_count(hederDef) {
+        var max = 0;
+        for (var i = 0; i < hederDef.length; i++) {
+            max = Math.max(max, this.cal_header(hederDef[i], 1));
+        }
+        return max;
+    }
+    private cal_header(cell, row_count) {
+        var max = row_count;
+        if (cell.children) {
+            row_count++;
+            for (var i = 0; i < cell.children.length; i++) {
+                max = Math.max(max, this.cal_header(cell.children[i], row_count));
+            }
+        }
+        return max;
+    }
+    private totalCS: number = 0;
+    private getColSpan(cell: any) {
+        if (cell.children) {
+            cell.children.forEach(it => {
+                this.totalCS++;
+                this.getColSpanHelper(it);
+            });
+        }
+    }
+    private getColSpanHelper(cell: any) {
+        if (cell.children) {
+            this.totalCS--;
+            cell.children.forEach(it => {
+                this.totalCS++;
+                this.getColSpan(it);
+            });
+        }
+    }
+    //end of calculte header
     search(val: any) {
         if (this.options.sspFn) {
             this.options.api.pager.search(val);
@@ -325,7 +414,7 @@ function getComponent(obj: any) {
             this.data = data;
         }
         onPageChange(list) {
-          async_call(()=>{this.viewList = list;});
+            async_call(() => { this.viewList = list; });
         }
         addItem(item) {
             this.data.unshift(item);
@@ -343,7 +432,7 @@ function getComponent(obj: any) {
                 this.formObj.showMessage(message, messageCss);
             }
         }
-        
+
     }
     return DynamicComponent;
 }
