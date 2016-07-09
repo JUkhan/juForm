@@ -197,20 +197,7 @@ export class juGrid implements OnInit, OnChanges, OnDestroy {
 
         tpl.push(`<table class="${this.options.classNames}">`);
         tpl.push('<thead>');
-        // tpl.push('<tr>');
-        // this.options.columnDefs.forEach((item, index) => {
-        //     if (item.headerName === 'crud' && item.enable) {
-        //         tpl.push(`<th style="width:${item.width}px"><a href="javascript:;" title="New item" (click)="config.newItem()"><b class="fa fa-plus-circle"></b> </a></th>`);
-        //     } else {
-        //         if (item.width) {
-        //             tpl.push(`<th style="width:${item.width}px">${item.headerName}</th>`);
-        //         } else {
-        //             tpl.push(`<th>${item.headerName}</th>`);
-        //         }
-        //     }
-        // });
-        // tpl.push('</tr>');
-        tpl.push(this.calculateHeader(this.options.columnDefs));
+        tpl.push(this.getHeader(this.options.columnDefs));
         tpl.push('</thead>');
         tpl.push('<tbody>');
         tpl.push('<tr [ngClass]="config.trClass(row, i, f, l)" *ngFor="let row of viewList;let i = index;let f=first;let l = last">');
@@ -256,18 +243,17 @@ export class juGrid implements OnInit, OnChanges, OnDestroy {
 
     //calculate header
     private headerHtml: any[] = [];
-    private calculateHeader(hederDef) {
+    private getHeader(hederDef) {
         var colDef = [], rc = this.row_count(hederDef), i = 0;
-
         while (i < rc) {
             this.headerHtml[i] = [];
             i++;
         }
         hederDef.forEach(it => {
             this.traverseCell(it, rc, 0, colDef);
-        });        
-        if(rc>1){
-            this.options.columnDefs=colDef;
+        });
+        if (rc > 1) {
+            this.options.columnDefs = colDef;
         }
         return this.headerHtml.map(_ => `<tr>${_.join('')}</tr>`).reduce((p, c) => p + c, '');
     }
@@ -308,16 +294,16 @@ export class juGrid implements OnInit, OnChanges, OnDestroy {
     private row_count(hederDef) {
         var max = 0;
         for (var i = 0; i < hederDef.length; i++) {
-            max = Math.max(max, this.cal_header(hederDef[i], 1));
+            max = Math.max(max, this.cal_header_row(hederDef[i], 1));
         }
         return max;
     }
-    private cal_header(cell, row_count) {
+    private cal_header_row(cell, row_count) {
         var max = row_count;
         if (cell.children) {
             row_count++;
             for (var i = 0; i < cell.children.length; i++) {
-                max = Math.max(max, this.cal_header(cell.children[i], row_count));
+                max = Math.max(max, this.cal_header_row(cell.children[i], row_count));
             }
         }
         return max;
