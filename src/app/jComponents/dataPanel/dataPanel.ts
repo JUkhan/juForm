@@ -1,8 +1,6 @@
 import {Inject, forwardRef, Component, OnInit, OnDestroy, Directive, Input, Output, ElementRef, EventEmitter, ViewEncapsulation} from '@angular/core';
 
 import {find} from 'lodash';
-
-
 declare var jQuery: any;
 declare var Hammer: any;
 declare var TweenLite: any;
@@ -23,9 +21,8 @@ declare var Expo: any;
     .mobile-content{position: relative;width:100%}
     `]
 })
-
 export class DataPanel implements OnInit, OnDestroy {
-    @Output() viewMode: string = 'web';
+    @Input() viewMode: string = 'web';
     @Output() onActive = new EventEmitter();
     activePane: UiPane = null;
     width: number;
@@ -43,20 +40,8 @@ export class DataPanel implements OnInit, OnDestroy {
         }
         else {
             let tid =setTimeout(() => {
-
                 TweenLite.set(jQuery(this.el.nativeElement).find('.slide-content').filter(":gt(0)"), { autoAlpha: 0 });
                 this.activePane = find(this.panes, (p: UiPane) => p.active == true);
-                /*let index=0;
-                 this.width= jQuery(this.el.nativeElement).find('.mobile-content').width();  
-                this.panes.forEach((p: UiPane) =>{
-                     p.index=index;
-                    if(p.active){
-                        this.activePane=p;
-                    }
-                    TweenLite.set( jQuery(p.elementRef.nativeElement).find('.slide-content'), {left:this.width*index});
-                    index++;
-                });*/
-
                 clearTimeout(tid);
             }, 0);
 

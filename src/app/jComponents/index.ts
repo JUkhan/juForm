@@ -4,4 +4,6 @@ export * from './juGrid';
 export * from './juPager';
 export * from './juMenu';
 export * from './uiService';
+export * from './juPanel';
+
 

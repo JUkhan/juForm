@@ -1,92 +1,11 @@
-
 import {Component, OnChanges, ElementRef, forwardRef, OnInit, Inject, ViewEncapsulation, Input, Output, EventEmitter, ChangeDetectionStrategy} from "@angular/core";
-import {Control, ControlGroup, FormBuilder, FORM_DIRECTIVES} from "@angular/common";
-
-//import {AnimationBuilder, CssAnimationBuilder} from 'angular2/animate';
 import { uiService } from '../uiService';
 import {Subject} from 'rxjs';
 declare var jQuery: any;
-
 @Component({
-    selector: '[juOption]', directives: [FORM_DIRECTIVES],
-    template: `
-    <div class="ju-option" [class.selected]="isSelected">
-        <div class="header" *ngIf="(parent.viewMode==='select')"><span class="title" [innerHtml]="data.name"></span><span class="sub-title" *ngIf="data.subtitle" [innerHtml]="data.subtitle"></span></div>
-        <div class="header" *ngIf="(parent.viewMode==='radio')"><input type="radio" name="xp0000" [checked]="isSelected"><span class="title" style="padding-left:5px" [innerHtml]="data.name"></span><span class="sub-title" *ngIf="data.subtitle" [innerHtml]="data.subtitle"></span></div>
-        <div class="header" *ngIf="(parent.viewMode==='checkbox')"><input type="checkbox" [checked]="isSelected"><span class="title" style="padding-left:5px" [innerHtml]="data.name"></span><span class="sub-title" *ngIf="data.subtitle" [innerHtml]="data.subtitle"></span></div>
-        <div *ngIf="data.description" class="description" [innerHtml]="data.description"></div>
-    </div>
-    `,
-    encapsulation: ViewEncapsulation.None,
-    changeDetection: ChangeDetectionStrategy.Default
-})
-class juOption {
-    @Input() data: any;
-
-    private _isSelected: boolean = false;
-    parent: juSelect;
-    constructor( @Inject(forwardRef(() => juSelect)) parent: juSelect) {
-        parent.addOption(this);
-        this.parent = parent;
-    }
-    ngOnDestroy() {
-        this.parent.removeOption(this);
-    }
-
-    set isSelected(value) {
-        this._isSelected = value;
-        this.data.selected = value;
-    }
-    get isSelected() {
-        return (this.data && this.data.selected) || this._isSelected;
-    }
-
-}
-
-@Component({
-    selector: 'juSelect', directives: [juOption],
-    template: `
-        <div style="position:relative">
-            <div class="ju-select form-control" (click)="toggleOPtions($event)"><span style="display:block;position:relative;top:3px">{{selectedText}}</span><b style="right:5px;position:absolute;top:10px;color:#555;font-size:9px">&#9660;</b></div>
-            <div class="options" [class.empty-options]="!searchData || searchData.length==0" >
-                <div class="action" *ngIf="!checkCssClass()">
-                    <form >
-                       <label [hidden]="!(viewMode==='checkbox')"> <input #chk [checked]="isAllSelected" (click)="checkAll(chk.checked)" type="checkbox"  title="check all"> Select All</label>
-                        <input *ngIf="!hideSearch"  type="text" [ngFormControl]="searchControl" placeholder="search item">
-                        <span *ngIf="viewMode==='select'" (click)="checkAll(false)" title="Unselect the item" class="unselect">&#10006;</span>
-                    </form>
-                </div>
-                <div class="items">
-                    <div class="option-host" (click)="selectOption(option)" #option juOption *ngFor="let item of searchData" [data]="item">
-                    </div>
-                </div>
-            </div>
-        </div>   
-             `,
-    styles: [`
-            .option-host{border-bottom:1px solid #e5e5e5;}
-            .option-host:last-child{border-bottom:0px solid transparent;}
-            .ju-option{padding:.4em;cursor:pointer;color: #555; transition: 0.5s; }            
-            .ju-option:hover,ju-option:focus{color: #fff;text-decoration: none;background-color: #387ef5;}  
-            .ju-option .header{position:relative;}
-            .ju-option .title{font-weight:normal;}
-            .ju-option .sub-title{position:absolute; right:3px;}  
-            .ju-option .description{font-size:11px;}         
-            .selected, .selected:hover{background-color:#23527c;color: #fff; }           
-            .options{z-index:999;background-color:#fff;border:solid 1px #23527c;width:100%;position:absolute;margin-top:1px;}
-            .options .items{max-height:250px;overflow-y:auto;}
-            .options .action{padding:.4em;border-bottom:solid 1px #e3e3e3;}
-            .options .search-hide{padding:0;border-bottom:solid 1px transparent;}
-            .options .action input[type="text"]{border:solid 1px #e3e3e3;padding-left:3px;width:70%;}
-            .options .action label{margin-right:3px;cursor:pointer;}
-            .ju-select{cursor:pointer;background-color:#fff;border:solid 1px #ddd; padding:2px 5px;height:34px;position:relative}
-            .ju-select b{position:absolute;right:2px;top:5px}
-            .show{display:block;}
-            .hide{display:none;}
-            .empty-options{min-height:120px; border-bottom:solid 1px #555;}
-            .unselect{right:5px;position:absolute;top:6px;cursor:pointer;color:black;}
-            .unselect:hover{color:red;}
-        `],
+    selector: 'juSelect', 
+    templateUrl:'./juSelect.html',
+    styleUrls:['./juSelect.css'] ,
     encapsulation: ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.Default
 })
@@ -100,25 +19,20 @@ export class juSelect implements OnInit, OnChanges {
     @Input() disabled: boolean = false;
     @Input() config: any = {};
     @Input('myForm') myForm: any;
-    valueChanges:Subject<any>
+    valueChanges:Subject<any>;
 
-    @Output('option-change') onChange = new EventEmitter();
-    options: juOption[] = [];
+    @Output('option-change') onChange = new EventEmitter();    
     spliter:string='$#$';
-    searchForm: any;
-    searchControl = new Control('');
+    searchForm: any;    
     searchData: any;
     visible: boolean = false;
     selectedText: string;
     isAllSelected: boolean = false;
     _dataSrc: any;
     optionsDom: any;
-    domClickSubscription: any;
-    //[style.display]="visible?'block':'none'" [hidden]="!visible"   
-    constructor(fb: FormBuilder, private el: ElementRef, private uiService: uiService) {
-        this.searchControl.valueChanges.subscribe(this.search.bind(this));
-        this.valueChanges=new Subject();
-       
+    domClickSubscription: any;      
+    constructor( private el: ElementRef, private uiService: uiService) {        
+        this.valueChanges=new Subject();       
     }
     ngOnChanges(changes) {
 
@@ -142,7 +56,7 @@ export class juSelect implements OnInit, OnChanges {
     @Input('data-src')
     set dataSrc(val: Array<any>) {
         if (!val) { return; }
-        let temp = val.map(item => Object.assign({}, item));
+        let temp = val.map(item => Object.assign({}, item,{selected:false}));
         this.searchData = temp;
         this._dataSrc = temp;
 
@@ -161,7 +75,7 @@ export class juSelect implements OnInit, OnChanges {
         }
     }
     get dataSrc() {
-        return this._dataSrc;
+        return this._dataSrc||[];
     }
     _getValueByPropertyName() {
         let props: Array<string> = this.propertyName.split('.');
@@ -188,8 +102,7 @@ export class juSelect implements OnInit, OnChanges {
     checkCssClass() {
         return this.viewMode === 'checkbox' ? false : this.hideSearch;
     }
-    ngOnInit() {
-        //this.animateOptions(true);        
+    ngOnInit() {                
         this.config.api = this;
         this.viewMode = this.viewMode.toLocaleLowerCase();
         if (this.viewMode === 'select' || this.viewMode === 'radio') {
@@ -238,21 +151,19 @@ export class juSelect implements OnInit, OnChanges {
             this.domClickSubscription.unsubscribe();
         }
     }
-    addOption(option: juOption) {
-        this.options.push(option);
+    
+    removeOption(option: any) {
+        this.dataSrc.splice(this.dataSrc.indexOf(option), 1);
     }
-    removeOption(option: juOption) {
-        this.options.splice(this.options.indexOf(option), 1);
-    }
-    selectOption(option: juOption) {
+    selectOption(option: any) {
         if (this.viewMode === 'select' || this.viewMode === 'radio') {
-            this.options.forEach(op => op.isSelected = (op === option));
+            this.dataSrc.forEach(op => op.selected = (op === option));
             async_call(() => { this.visible = !this.visible; this.animate();}, 100);
-            this.selectedText = option.data.name;
+            this.selectedText = option.name;
         }
         else if (this.viewMode === 'checkbox') {
-            option.isSelected = !option.isSelected;
-            var selectedOptions = this.options.filter(v => v.isSelected === true);
+            option.selected = !option.selected;
+            var selectedOptions = this.dataSrc.filter(v => v.selected === true);
             if (selectedOptions) {
                 this.isAllSelected = selectedOptions.length === this.dataSrc.length;
                 if (this.isAllSelected) {
@@ -279,15 +190,15 @@ export class juSelect implements OnInit, OnChanges {
     }
     selectItem(value_or_name: any) {
         if (!value_or_name) return;
-        this.checkAll(false, false);
+        this.checkAll(false, false);                
         let valueSelected = false;
         if (this.searchData) {
             this.searchData.forEach((v: any) => {
                 if (v.value.toString() === value_or_name.toString() || v.name === value_or_name) {
                     this.selectedText = v.name;
-                    let option = this.options.find((x: any) => x.data.value.toString() === v.value.toString());
+                    let option = this.dataSrc.find((x: any) => x.value.toString() === v.value.toString());
                     if (option) {
-                        option.isSelected = true;
+                        option.selected = true;
                         valueSelected = true;
                     }
                 }
@@ -301,7 +212,7 @@ export class juSelect implements OnInit, OnChanges {
     }
     selectItems(values_or_names: any) {
         if (!values_or_names) return;
-        this.checkAll(false, false);
+        this.checkAll(false, false);                
         var spliter = this.spliter, len = 0;
         if (Array.isArray(values_or_names)) {
             len = values_or_names.length;
@@ -316,9 +227,9 @@ export class juSelect implements OnInit, OnChanges {
         if (this.searchData) {
             this.searchData.forEach((v: any) => {
                 if (values_or_names.indexOf(spliter + v.value + spliter) >= 0 || values_or_names.indexOf(spliter + v.name + spliter) >= 0) {
-                    let option = this.options.find(x => x.data.value === v.value);
+                    let option = this.dataSrc.find(x => x.value === v.value);
                     if (option) {
-                        option.isSelected = true;
+                        option.selected = true;
                         valueSelected = true;
                     }
                 }
@@ -368,16 +279,17 @@ export class juSelect implements OnInit, OnChanges {
         return res;
     }
     checkAll(isChecked: boolean, isModelUpdate: boolean = true) {
-        this.options.forEach(v => v.isSelected = isChecked);
+        this.dataSrc.forEach(v => v.selected = isChecked);
+        this.isAllSelected=isChecked;
         if (isChecked) {
-            if (this.dataSrc.length === this.options.length) {
+            if (this.dataSrc.length === this.searchData.length) {
                 this.selectedText = 'All items selected(' + this.dataSrc.length + ')';
             }
             else {
-                this.selectedText = this.options.length + (this.options.length > 1 ? ' items' : ' item') + ' selected';
+                this.selectedText = this.searchData.length + (this.searchData.length > 1 ? ' items' : ' item') + ' selected';
             }
         } else {
-            this.selectedText = this.viewMode === 'checkbox' ? 'Select options' : 'Select option';
+            this.selectedText = this.viewMode === 'checkbox' ? 'Select options' : 'Select option';            
         }
         if (isModelUpdate) {
             this._setModelValue();

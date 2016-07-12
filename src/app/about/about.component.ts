@@ -1,9 +1,10 @@
 import { Component, OnInit } from '@angular/core';
-
+import {juPanel, juPanelContent} from '../jComponents';
 @Component({
   selector: 'my-about',
   templateUrl: './about.component.html',
-  styleUrls: ['./about.component.scss']
+  styleUrls: ['./about.component.scss'],
+  directives:[juPanel, juPanelContent]
 })
 export class AboutComponent implements OnInit {
 
