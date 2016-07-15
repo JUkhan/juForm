@@ -17,7 +17,6 @@ export class gridExample implements OnInit {
     scholarGridOptions:GridOptions;
     scholarList: any[];
     constructor(private service:ApiService) { }
-
     ngOnInit() {
         this.initScholar();
          var x:GridOptions={
@@ -31,10 +30,11 @@ export class gridExample implements OnInit {
      }
     private initScholar() {
         this.scholarGridOptions = {            
-            pageSize:3,                      
+            pageSize:3, quickSearch:!true,                      
             columnDefs: [
-                { headerName: 'Name', field: 'name' },
-                { headerName: 'Education', field: 'education'},
+                { headerName: 'Name', field: 'name', sort:true, filter:'text' },
+                { headerName: 'Education', field: 'education', sort:true, filter:'text'},
+                { headerName: 'Age', field: 'age', filter:'number', sort:true},
                 { headerName: 'Address', field: 'address'},
                 { headerName: 'Description', field: 'description' }
             ],

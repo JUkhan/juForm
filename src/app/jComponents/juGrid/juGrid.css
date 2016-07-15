@@ -1,0 +1,39 @@
+.table{margin-bottom:3px; width:auto;}
+.icon-hide{display:none;}
+.icon-show{display:inline-block;}
+.filter-bar{float: right; cursor:hand;width:20px; height:20px; padding:1px; text-align:center; }
+.filter-window{
+    border:1px solid #808080;
+    min-height:50px;
+    position:absolute; 
+    display: none;    
+    z-index:1000; 
+    height: auto;
+    background-color:#f6f6f6; 
+    border-radius:3px;
+}
+.filter-window .filter-content{
+    padding:5px;    
+}
+.filter-window .title { 
+   padding-left: 5px; 
+   border-bottom:1px solid #808080;
+}
+.filter-window .title a{
+    margin-right:3px;
+    float: right;
+}
+.filter-window .filter-content select{
+    height:26px;
+}
+.filter-window .filter-content #txtFilter{
+    height:26px;
+    width:100%;
+    padding-left:5px;
+}
+.grid-toolbar{
+    padding-bottom:3px;
+}
+.quickSearch{
+    width:140px;    
+}

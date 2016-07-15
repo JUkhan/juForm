@@ -3,24 +3,16 @@ import {Component, OnInit, OnChanges, ChangeDetectionStrategy, ChangeDetectorRef
     ComponentRef, ElementRef, DynamicComponentLoader, ViewEncapsulation} from '@angular/core';
 import {juForm, juSelect} from '../juForm';
 import {juPager} from '../juPager';
-
+import {TextFilter} from './TextFilter';
+import {NumberFilter} from './NumberFilter';
+import {BaseFilter} from './juGrid.d';
+declare var jQuery: any;
 @Component({
-    selector: '.juGrid, [juGrid]', encapsulation: ViewEncapsulation.None,
-    template: `<div *ngIf="options.message" [class]="options.messageCss">{{options.message}}</div>
-    <div *ngIf="options.search" class="row">
-        <div class="col-md-3 pull-right">             
-                <div class="input-group stylish-input-group">
-                    <input type="text" class="form-control" (keyup)="search($event.target.value)" placeholder="Search" >
-                    <span class="input-group-addon">                        
-                            <span class="fa fa-search"></span>                         
-                    </span>
-                </div>            
-        </div>
-	</div>    
-    <juForm *ngIf="options.crud" viewMode="popup" title="Sample Form" (onLoad)="onFormLoad($event)" [options]="options.formDefs">
-    </juForm>
-    `,
+    selector: '.juGrid, [juGrid]',
+    templateUrl: './juGrid.html',
+    styleUrls: ['./juGrid.css'],
     directives: [juForm],
+    encapsulation: ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.Default
 })
 
@@ -109,8 +101,8 @@ export class juGrid implements OnInit, OnChanges, OnDestroy {
         if (!('remove' in this.options)) {
             this.options.remove = true;
         }
-        if (!('search' in this.options)) {
-            this.options.search = true;
+        if (!('quickSearch' in this.options)) {
+            this.options.quickSearch = true;
         }
         if (!('trClass' in this.options)) {
             this.options.trClass = () => null;
@@ -163,6 +155,7 @@ export class juGrid implements OnInit, OnChanges, OnDestroy {
             .then(com => {
                 this.dynamicComponent = com;
                 com.instance.config = this.options;
+                com.instance.parent = this;
                 if (this.options.data || this.data) {
                     this.dynamicComponent.instance.setData(this.data || this.options.data);
                 }
@@ -191,6 +184,10 @@ export class juGrid implements OnInit, OnChanges, OnDestroy {
         if (this.options.crud) {
             //this.renderForm(tpl);
         }
+        tpl.push(`<div class="filter-window">
+        <div class="title"><span>Title</span><a href="javascript:;" title="Close filter window." (click)="hideFilterWindow()"><b class="fa fa-remove"></b></a></div>
+        <div class="filter-content"></div>
+        </div>`)
         return { tpl: tpl.join('') };
     }
     private renderTable(tpl: any[]) {
@@ -257,6 +254,7 @@ export class juGrid implements OnInit, OnChanges, OnDestroy {
         }
         return this.headerHtml.map(_ => `<tr>${_.join('')}</tr>`).reduce((p, c) => p + c, '');
     }
+    private _colIndex: number = 0;
     private traverseCell(cell, rs, headerRowFlag, colDef: any[]) {
 
         if (cell.children) {
@@ -284,11 +282,31 @@ export class juGrid implements OnInit, OnChanges, OnDestroy {
             if (cell.width) {
                 this.headerHtml[headerRowFlag].push(` style="width:${cell.width}px"`);
             }
+            if (cell.sort) {
+                this.headerHtml[headerRowFlag].push(` (click)="sort(config.columnDefs[${this._colIndex}])"`);
+            }
+            if (cell.filter) {
+                this.headerHtml[headerRowFlag].push(` (mouseenter)="config.columnDefs[${this._colIndex}].filterCss={'icon-hide':false,'icon-show':true}"`);
+                this.headerHtml[headerRowFlag].push(` (mouseleave)="config.columnDefs[${this._colIndex}].filterCss={'icon-hide':!config.columnDefs[${this._colIndex}].isOpened,'icon-show':config.columnDefs[${this._colIndex}].isOpened}"`);
+            }
             if (cell.headerName === 'crud' && cell.enable) {
                 this.headerHtml[headerRowFlag].push(`><a href="javascript:;" title="New item" (click)="config.newItem()"><b class="fa fa-plus-circle"></b> </a></th>`);
             } else {
-                this.headerHtml[headerRowFlag].push(`>${cell.headerName}</th>`);
+                this.headerHtml[headerRowFlag].push(' >');
+                if (cell.sort) {
+                    this.headerHtml[headerRowFlag].push(`<b [ngClass]="sortIcon(config.columnDefs[${this._colIndex}])" class="fa"></b>`);
+                }
+                if (cell.filter) {
+                    this.headerHtml[headerRowFlag].push(` <b [ngClass]="filterIcon(config.columnDefs[${this._colIndex}])" class="fa fa-filter"></b>`);
+                }
+                this.headerHtml[headerRowFlag].push(` <span>${cell.headerName}</span>`);
+                if (cell.filter) {
+                    this.headerHtml[headerRowFlag].push(`<a href="javascript:;" title="Show filter window." [ngClass]="config.columnDefs[${this._colIndex}].filterCss" (click)="showFilter(config.columnDefs[${this._colIndex}], $event)" class="filter-bar icon-hide"><b class="fa fa-bars"></b></a>`);
+
+                }
+                this.headerHtml[headerRowFlag].push('</th>');
             }
+            this._colIndex++;
         }
     }
     private row_count(hederDef) {
@@ -369,16 +387,22 @@ function getComponent(obj: any) {
         encapsulation: ViewEncapsulation.None
     })
     class DynamicComponent {
-        data: any = [];
+        data: any[] = [];
         config: any = {};
         formObj: juForm;
         viewList: any[] = [];
+        parent: any;
         private pager: juPager;
         constructor(private el: ElementRef) {
 
         }
         ngOnInit() {
 
+        }
+        ngOnDestroy() {
+            this.config.columnDefs
+                .filter(it => it.filterApi)
+                .forEach(it => { it.filterApi.destroy(); });
         }
         pagerInit(pager: juPager) {
             this.pager = pager;
@@ -418,7 +442,107 @@ function getComponent(obj: any) {
                 this.formObj.showMessage(message, messageCss);
             }
         }
+        sort(colDef: any) {
+            colDef.reverse = !(typeof colDef.reverse === 'undefined' ? true : colDef.reverse);
+            let reverse = !colDef.reverse ? 1 : -1, sortFn = typeof colDef.comparator === 'function' ?
+                (a: any, b: any) => reverse * colDef.comparator(a, b) :
+                function (a: any, b: any) { return a = a[colDef.field], b = b[colDef.field], reverse * (<any>(a > b) - <any>(b > a)); };
+            this.data = [...this.data.sort(sortFn)];
+            this.config.columnDefs.forEach(_ => {
+                if (_ !== colDef) {
+                    _.reverse = undefined;
+                }
+            });
+            //this.hideFilterWindow();
+        }
+        sortIcon(colDef: any) {
+            let hidden = typeof colDef.reverse === 'undefined';
+            return { 'icon-hide': hidden, 'icon-show': !hidden, 'fa-caret-up': colDef.reverse === false, 'fa-caret-down': colDef.reverse === true };
+        }
+        filterIcon(colDef: any) {
+            return { 'icon-hide': !(colDef.filterApi && colDef.filterApi.isFilterActive()), 'icon-show': colDef.filterApi && colDef.filterApi.isFilterActive() };
+        }
+        private filterWindow: any;
+        private currentFilter: any;
+        showFilter(colDef: any, event: MouseEvent) {
+            event.preventDefault();
+            event.stopPropagation();
+            if(colDef===this.currentFilter &&  colDef.isOpened){
+                 return;
+            }
+            this.hideFilterBar();
+            this.currentFilter = colDef;
+            colDef.isOpened = true;
+            if (!this.filterWindow) {
+                this.filterWindow = jQuery(this.el.nativeElement).find('.filter-window');
+            }
+            let parent = jQuery(event.target), parentOffset = parent.offset();
+            this.buildFilter(colDef);
+            this.filterWindow.find('.filter-content').html(colDef.filterApi.getGui());
+            this.filterWindow.find('.title span').html(colDef.headerName);
+            this.filterWindow.css({ top: parentOffset.top + parent.height() + 7, left: parentOffset.left }).show();
+        }
+        buildFilter(colDef: any) {
+            try {
+                if (!colDef.filterApi) {
+                    switch (colDef.filter) {
+                        case 'text':
+                            colDef.filterApi = new TextFilter();
+                            break;
+                        case 'number':
+                            colDef.filterApi = new NumberFilter();
+                            break;
+                        case 'set':
+                            break;
+                        default:
+                            colDef.filterApi = colDef.filter;
+                            break;
+                    }
+                    colDef.filterChangedCallback = this.filterChangedCallback.bind(this);
+                    colDef.valueGetter = this.valueGetter;
+                    colDef.filterApi.init(colDef);
 
+                }
+            } catch (e) {
+                console.error(e.message);
+            }
+
+        }
+        valueGetter(colDef: any) {
+            try {
+                if (colDef.params && colDef.params.cellRenderer) {
+                    return colDef.params.cellRenderer(colDef.row);
+                }
+                return colDef.row[colDef.field];
+            } catch (e) {
+                console.error(e.message);
+            }
+        }
+        filterChangedCallback() {
+            let activeFilters = this.config.columnDefs.filter(it => it.filterApi && it.filterApi.isFilterActive());
+            let temp: any[] = [];
+            this.parent.data.forEach(row => {
+                let flag: any = true;
+                activeFilters.forEach((col: any, index: number) => {
+                    col.row = row;
+                    flag &= col.filterApi.doesFilterPass(col);
+                });
+                if (flag) {
+                    temp.push(row);
+                }
+            });
+            this.data = temp;
+        }
+        hideFilterWindow() {            
+            this.filterWindow.hide();          
+            this.hideFilterBar();
+        } 
+        hideFilterBar(){
+            if (this.currentFilter) {
+                this.currentFilter.isOpened = false;
+                this.currentFilter.filterCss={'icon-hide':true,'icon-show':false};
+            }
+        }       
     }
     return DynamicComponent;
 }

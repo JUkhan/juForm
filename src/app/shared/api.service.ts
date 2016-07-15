@@ -17,9 +17,9 @@ export class ApiService {
      return Observable.of(true);
    }
    scholarList:any[]=[
-      {id:1,name:'Abdulla', education:'CSE',address:'Tngail',  description:'Description..'},
-      {id:2,name:'Ariful', education:'BBA',address:'Tngail',  description:'Description..'},
-      {id:3,name:'Shofiqul', education:'MBA',address:'Tngail',  description:'Description..'},
-      {id:4,name:'Siddika', education:'CSE',address:'Tngail',  description:'Description..'}
+      {id:1,name:'Abdulla', education:'CSE',address:'Tngail', age:23,  description:'Description..'},
+      {id:2,name:'Ariful', education:'BBA',address:'Tngail', age:27, description:'Description..'},
+      {id:3,name:'Shofiqul', education:'MBA',address:'Tngail',age:33,  description:'Description..'},
+      {id:4,name:'Siddika', education:'CSE',address:'Tngail',age:35,  description:'Description..'}
   ];
 }

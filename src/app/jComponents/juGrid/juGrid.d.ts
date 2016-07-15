@@ -9,6 +9,10 @@ export interface ColumnDefs{
     cellRenderer?:(row:any, index:number, isFirst:boolean, isLast:boolean)=>string;
     action?:[{title:string, icon:string, click:(row:any)=>void}];
     children?:ColumnDefs[];
+    sort?:boolean;
+    comparator?:(a:any, b:any)=>boolean;
+    filter?:'set'|'text'|'number'|BaseFilter;
+    params?:{cellRenderer?:(row:any)=>string, apply?:boolean};
 }
 export interface GridOptions{
     classNames?:string;
@@ -19,7 +23,7 @@ export interface GridOptions{
     create?:boolean;
     update?:boolean;
     remove?:boolean;
-    search?:boolean;
+    quickSearch?:boolean;
     update_CB?:(form:juForm, model:any)=>void;
     insert_CB?:(form:juForm)=>void;
     trClass?:(row:any, index:number, isFirst:boolean, isLast:boolean)=>{};
@@ -28,8 +32,13 @@ export interface GridOptions{
     removeItem?: (data:any) =>void;
     api?:{form:juForm, grid:juGrid};
     sspFn?:(params:{pageSize:number,pageNo:number, searchText:string})=>Observable<{totalPage:number, data:any[]}>;
-    onFormLoad?: (form: juForm) =>void;
-   
+    onFormLoad?: (form: juForm) =>void;   
 }
-
+export interface BaseFilter {
+    init:(params:any)=>void;
+    getGui:()=>HTMLElement|Node|string;
+    isFilterActive:()=>boolean;
+    doesFilterPass:(item:any)=>boolean;
+    destroy:()=>void;
+}
  
