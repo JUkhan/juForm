@@ -10,7 +10,7 @@ export class TextFilter implements BaseFilter {
     init(params: any) {
         this.setupGui(params);
     }
-    getGui(): HTMLElement {
+    getGui(): HTMLElement {        
         return this._gui;
     }
     isFilterActive(): boolean {
@@ -42,7 +42,7 @@ export class TextFilter implements BaseFilter {
         return passed;
     }
     destroy() {
-        console.log('textFilter destroyed');
+        
     }
     //internal
     private setupGui(params) {
@@ -82,6 +82,7 @@ export class TextFilter implements BaseFilter {
     }
     private getContent() {
         let tpl: any[] = [];
+        tpl.push('<div style="padding:5px">');
         tpl.push('<div>');
         tpl.push(`<select id="ddlFilter" style="display:inline-block;width:120px">
             <option value="Contains">Contains</option>
@@ -95,6 +96,7 @@ export class TextFilter implements BaseFilter {
         if (this._isApply) {
             tpl.push('<div style="padding-top:3px;text-align:center;"><input id="applyButton" type="button" value="Apply"></div>');
         }
+        tpl.push('</div>');
         return tpl.join('');
     }
 }

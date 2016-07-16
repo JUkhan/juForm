@@ -12,11 +12,10 @@
     background-color:#f6f6f6; 
     border-radius:3px;
 }
-.filter-window .filter-content{
-    padding:5px;    
-}
 .filter-window .title { 
    padding-left: 5px; 
+   padding-top: 2px; 
+   padding-bottom: 2px; 
    border-bottom:1px solid #808080;
 }
 .filter-window .title a{
@@ -26,10 +25,22 @@
 .filter-window .filter-content select{
     height:26px;
 }
-.filter-window .filter-content #txtFilter{
+.filter-window .filter-content #txtFilter, .filter-window .filter-content #txtSearch{
     height:26px;
     width:100%;
     padding-left:5px;
+}
+.filter-window .filter-content .select-all{
+    border-top:1px solid #cdcdcd;
+    border-bottom:1px solid #cdcdcd;   
+    padding-left:5px;
+}
+.filter-window .filter-content .set-content{
+    overflow-y: auto;
+    max-height: 150px;    
+}
+.filter-window .filter-content .set-content .item{
+    padding-left:5px;    
 }
 .grid-toolbar{
     padding-bottom:3px;

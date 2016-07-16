@@ -5,7 +5,9 @@ import {juForm, juSelect} from '../juForm';
 import {juPager} from '../juPager';
 import {TextFilter} from './TextFilter';
 import {NumberFilter} from './NumberFilter';
-import {BaseFilter} from './juGrid.d';
+import {SetFilter} from './SetFilter';
+import {Observable} from 'rxjs';
+
 declare var jQuery: any;
 @Component({
     selector: '.juGrid, [juGrid]',
@@ -154,8 +156,7 @@ export class juGrid implements OnInit, OnChanges, OnDestroy {
         this.loader.loadNextToLocation(getComponent(this.getDynamicConfig()), this.viewContainerRef)
             .then(com => {
                 this.dynamicComponent = com;
-                com.instance.config = this.options;
-                com.instance.parent = this;
+                com.instance.config = this.options;                
                 if (this.options.data || this.data) {
                     this.dynamicComponent.instance.setData(this.data || this.options.data);
                 }
@@ -301,7 +302,7 @@ export class juGrid implements OnInit, OnChanges, OnDestroy {
                 }
                 this.headerHtml[headerRowFlag].push(` <span>${cell.headerName}</span>`);
                 if (cell.filter) {
-                    this.headerHtml[headerRowFlag].push(`<a href="javascript:;" title="Show filter window." [ngClass]="config.columnDefs[${this._colIndex}].filterCss" (click)="showFilter(config.columnDefs[${this._colIndex}], $event)" class="filter-bar icon-hide"><b class="fa fa-bars"></b></a>`);
+                    this.headerHtml[headerRowFlag].push(`<a href="javascript:;" title="Show filter window." [ngClass]="config.columnDefs[${this._colIndex}].filterCss" (click)="showFilter(config.columnDefs[${this._colIndex}], $event)" class="filter-bar icon-hide"><b class="fa fa-filter"></b></a>`);
 
                 }
                 this.headerHtml[headerRowFlag].push('</th>');
@@ -391,7 +392,7 @@ function getComponent(obj: any) {
         config: any = {};
         formObj: juForm;
         viewList: any[] = [];
-        parent: any;
+        _copyOfData: any;
         private pager: juPager;
         constructor(private el: ElementRef) {
 
@@ -422,6 +423,8 @@ function getComponent(obj: any) {
         }
         setData(data) {
             this.data = data;
+            this._copyOfData=[...data];
+            this.isDataUpdated=true;
         }
         onPageChange(list) {
             async_call(() => { this.viewList = list; });
@@ -429,6 +432,8 @@ function getComponent(obj: any) {
         addItem(item) {
             this.data.unshift(item);
             this.pager.calculatePagelinkes();
+            this.isDataUpdated=true;
+            this._copyOfData.unshift(item);
         }
         updateItem(item) {
 
@@ -436,6 +441,8 @@ function getComponent(obj: any) {
         removeItem(item) {
             this.data.splice(this.data.indexOf(item), 1);
             this.pager.calculatePagelinkes();
+            this.isDataUpdated=true;
+            this._copyOfData.splice(this.data.indexOf(item), 1);
         }
         showMessage(message: string, messageCss: string) {
             if (this.formObj) {
@@ -453,7 +460,6 @@ function getComponent(obj: any) {
                     _.reverse = undefined;
                 }
             });
-            //this.hideFilterWindow();
         }
         sortIcon(colDef: any) {
             let hidden = typeof colDef.reverse === 'undefined';
@@ -464,11 +470,12 @@ function getComponent(obj: any) {
         }
         private filterWindow: any;
         private currentFilter: any;
-        showFilter(colDef: any, event: MouseEvent) {
+        private isDataUpdated:boolean=false;
+        showFilter(colDef: any, event: MouseEvent) { 
             event.preventDefault();
             event.stopPropagation();
-            if(colDef===this.currentFilter &&  colDef.isOpened){
-                 return;
+            if (colDef === this.currentFilter && colDef.isOpened) {
+                return;
             }
             this.hideFilterBar();
             this.currentFilter = colDef;
@@ -493,15 +500,25 @@ function getComponent(obj: any) {
                             colDef.filterApi = new NumberFilter();
                             break;
                         case 'set':
+                            colDef.filterApi = new SetFilter();
                             break;
                         default:
                             colDef.filterApi = colDef.filter;
                             break;
                     }
+                    colDef.params = colDef.params || {};
                     colDef.filterChangedCallback = this.filterChangedCallback.bind(this);
-                    colDef.valueGetter = this.valueGetter;
+                    colDef.valueGetter = this.valueGetter;                    
                     colDef.filterApi.init(colDef);
-
+                   
+                }                
+                if (colDef.filter === 'set' && !colDef.params.value &&  this.isDataUpdated) {
+                     colDef.filterApi.data= this._copyOfData
+                        .map(item => {
+                            return colDef.params.valueGetter ? colDef.params.valueGetter(item) : item[colDef.field];
+                        }).filter((value: any, index: number, self: any[]) => self.indexOf(value) === index);
+                    colDef.filterApi.bindData(colDef.filterApi.data);
+                    this.isDataUpdated=false;
                 }
             } catch (e) {
                 console.error(e.message);
@@ -510,8 +527,8 @@ function getComponent(obj: any) {
         }
         valueGetter(colDef: any) {
             try {
-                if (colDef.params && colDef.params.cellRenderer) {
-                    return colDef.params.cellRenderer(colDef.row);
+                if (colDef.params.valueGetter) {
+                    return colDef.params.valueGetter(colDef.row);
                 }
                 return colDef.row[colDef.field];
             } catch (e) {
@@ -521,7 +538,7 @@ function getComponent(obj: any) {
         filterChangedCallback() {
             let activeFilters = this.config.columnDefs.filter(it => it.filterApi && it.filterApi.isFilterActive());
             let temp: any[] = [];
-            this.parent.data.forEach(row => {
+            this._copyOfData.forEach(row => {
                 let flag: any = true;
                 activeFilters.forEach((col: any, index: number) => {
                     col.row = row;
@@ -533,16 +550,16 @@ function getComponent(obj: any) {
             });
             this.data = temp;
         }
-        hideFilterWindow() {            
-            this.filterWindow.hide();          
+        hideFilterWindow() {
+            this.filterWindow.hide();
             this.hideFilterBar();
-        } 
-        hideFilterBar(){
+        }
+        hideFilterBar() {
             if (this.currentFilter) {
                 this.currentFilter.isOpened = false;
-                this.currentFilter.filterCss={'icon-hide':true,'icon-show':false};
+                this.currentFilter.filterCss = { 'icon-hide': true, 'icon-show': false };
             }
-        }       
+        }
     }
     return DynamicComponent;
 }

@@ -85,6 +85,7 @@ export class NumberFilter implements BaseFilter {
     }
     private getContent() {
         let tpl: any[] = [];
+        tpl.push('<div style="padding:5px">');
         tpl.push('<div>');
         tpl.push(`<select id="ddlFilter" style="display:inline-block;width:120px">
             <option value="=">Equals</option>
@@ -99,6 +100,7 @@ export class NumberFilter implements BaseFilter {
         if (this._isApply) {
             tpl.push('<div style="padding-top:3px;text-align:center;"><input id="applyButton" type="button" value="Apply"></div>');
         }
+        tpl.push('</div>');
         return tpl.join('');
     }
 }
