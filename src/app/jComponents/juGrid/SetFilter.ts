@@ -3,8 +3,7 @@ import {Observable, Subscription} from 'rxjs';
 
 export class SetFilter implements BaseFilter {
     private _isActive: boolean = false;
-    private _gui: HTMLElement;
-    private _checkAll: boolean = true;
+    private _gui: HTMLElement;    
     private _col: any;
     public data: any[];
     init(params: any) {
@@ -18,46 +17,42 @@ export class SetFilter implements BaseFilter {
         return this._isActive;
     }
     doesFilterPass(params: any): boolean {
-        let passed = true, colValue = params.valueGetter(params);
-        if (this.selectedItems.indexOf(colValue) < 0) {
+        let passed = true, colValue = params.valueGetter(params)||'';
+        if (this.selectedItems.indexOf(colValue.toString()) < 0) {
             passed = false;
         }
         return passed;
     }
     destroy() {
         this.unsubscribeCkhList();
-        if(!this.txtSearchSubscription.isUnsubscribed){
-            this.txtSearchSubscription.unsubscribe();
-            this.txtSearchSubscription.remove(this.txtSearchSubscription);
-        }
-        if(!this.selectAllSubscription.isUnsubscribed){
-            this.selectAllSubscription.unsubscribe();
-            this.selectAllSubscription.remove(this.selectAllSubscription);
-        }        
+        this.subsList.forEach(_=>{
+            if(_ && !_.isUnsubscribed){
+                _.unsubscribe();
+                _.remove(_);
+            }
+        });      
     }
     //internal
-    private txtSearchSubscription:Subscription;
-    private selectAllSubscription:Subscription;
+    private subsList:Subscription[]=[];    
     private setupGui() {
         this._gui = document.createElement('div');
         this._gui.style.minWidth = '200px';
         this._gui.style.minHeight = '200px';
         this._gui.innerHTML = this.getContent();
 
-        this.txtSearchSubscription=Observable.fromEvent(this._gui.querySelector('#txtSearch'), 'keyup')
+        this.subsList.push(Observable.fromEvent(this._gui.querySelector('#txtSearch'), 'keyup')
             .map((e: any) => e.target.value.toLowerCase())
             .subscribe(val => {                
-                this.updateItems(this.data.filter((it:string)=>it.toLowerCase().indexOf(val)>=0));
-            });
-        this.selectAllSubscription=Observable.fromEvent(this._gui.querySelector('#selectAll'), 'click')
+                this.updateItems(this.getData().filter((it:string)=>it.toLowerCase().indexOf(val)>=0));
+            }));
+        this.subsList.push(Observable.fromEvent(this._gui.querySelector('#selectAll'), 'click')
             .map((e: any) => e.target.checked)
-            .subscribe(val => {
-                this._checkAll = val;
+            .subscribe(val => {                
                 this._isActive = true;
                 this.checkAll(val);
                 this.doFilter();
-                this._isActive = !this._checkAll;
-            });
+                this._isActive = !val;
+            }));
         if (this._col.params.value) {
             this.bindData(this._col.params.value);
         }
@@ -104,7 +99,7 @@ export class SetFilter implements BaseFilter {
     private chkSubscriptionList: Subscription[] = [];
     private unsubscribeCkhList() {
         this.chkSubscriptionList.forEach(it => {
-            if (!it.isUnsubscribed) {               
+            if (it && !it.isUnsubscribed) {               
                 it.unsubscribe();
                 it.remove(it);
             }
@@ -130,13 +125,16 @@ export class SetFilter implements BaseFilter {
             tpl.push('</div>');
         });
         this._gui.querySelector('.set-content').innerHTML = tpl.join('');
-        let chkList = this._gui.querySelectorAll('.set-content input.chk');
+        let chkList = this._gui.querySelectorAll('.set-content input.chk'),
+            chkAll:any=this._gui.querySelector('#selectAll');
         for (let i = 0; i < chkList.length; i++) {
             this.chkSubscriptionList.push(
                 Observable.fromEvent(chkList[i], 'click').subscribe(next => {
                     this._isActive = true;
-                    (<any>this._gui.querySelector('#selectAll')).checked=this.getList(it => it.checked === true).length===this.getData().length;
+                    let ischecked=this.getList(it => it.checked === true).length===this.getData().length;
+                    chkAll.checked=ischecked;
                     this.doFilter();
+                    this._isActive = !ischecked;
                 }));
         }
     }

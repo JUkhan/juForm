@@ -186,7 +186,7 @@ export class juGrid implements OnInit, OnChanges, OnDestroy {
             //this.renderForm(tpl);
         }
         tpl.push(`<div class="filter-window">
-        <div class="title"><span>Title</span><a href="javascript:;" title="Close filter window." (click)="hideFilterWindow()"><b class="fa fa-remove"></b></a></div>
+        <div class="title" (click)="hideFilterWindow()"><span>Title</span><a href="javascript:;" title="Close filter window." ><b class="fa fa-remove"></b></a></div>
         <div class="filter-content"></div>
         </div>`)
         return { tpl: tpl.join('') };
@@ -506,6 +506,7 @@ function getComponent(obj: any) {
                             colDef.filterApi = colDef.filter;
                             break;
                     }
+                    colDef.gridApi=this;
                     colDef.params = colDef.params || {};
                     colDef.filterChangedCallback = this.filterChangedCallback.bind(this);
                     colDef.valueGetter = this.valueGetter;                    

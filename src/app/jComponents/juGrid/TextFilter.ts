@@ -1,5 +1,5 @@
 import {BaseFilter} from './juGrid.d';
-import {Observable} from 'rxjs';
+import {Observable, Subscription} from 'rxjs';
 export class TextFilter implements BaseFilter {
     private _isActive: boolean = false;
     private _gui: HTMLElement;
@@ -42,9 +42,15 @@ export class TextFilter implements BaseFilter {
         return passed;
     }
     destroy() {
-        
+        this.subsList.forEach(_=>{
+            if(_ && !_.isUnsubscribed){
+                _.unsubscribe();
+                _.remove(_);
+            }
+        });
     }
     //internal
+    private subsList:Subscription[]=[];
     private setupGui(params) {
         if(params.params && params.params.apply){
             this._isApply = params.params.apply;
@@ -53,16 +59,16 @@ export class TextFilter implements BaseFilter {
         this._gui.style.minWidth = '200px';
         this._gui.innerHTML = this.getContent();
 
-        Observable.fromEvent(this._gui.querySelector('#ddlFilter'), 'change')
+        this.subsList.push(Observable.fromEvent(this._gui.querySelector('#ddlFilter'), 'change')
             .map((e: any) => e.target.value)
             .subscribe(val => {
                 this.searchCategory = val;
                  if (!this._isApply && this.searchText) {
                     params.filterChangedCallback();
                 }
-            });
+            }));
 
-        Observable.fromEvent(this._gui.querySelector('#txtFilter'), 'keyup')
+        this.subsList.push(Observable.fromEvent(this._gui.querySelector('#txtFilter'), 'keyup')
             .distinctUntilChanged()
             .debounceTime(300)
             .map((e: any) => e.target.value.toLowerCase())
@@ -72,12 +78,12 @@ export class TextFilter implements BaseFilter {
                 if (!this._isApply) {
                     params.filterChangedCallback();
                 }
-            });
+            }));
         if (this._isApply) {
-            Observable.fromEvent(this._gui.querySelector('#applyButton'), 'click')
+            this.subsList.push(Observable.fromEvent(this._gui.querySelector('#applyButton'), 'click')
                 .subscribe(val => {
                     params.filterChangedCallback();
-                });
+                }));
         }
     }
     private getContent() {

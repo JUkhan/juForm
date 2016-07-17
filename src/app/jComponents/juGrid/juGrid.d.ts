@@ -12,7 +12,7 @@ export interface ColumnDefs{
     sort?:boolean;
     comparator?:(a:any, b:any)=>boolean;
     filter?:'set'|'text'|'number'|BaseFilter;
-    params?:{cellRenderer?:(row:any, index?:number)=>any, apply?:boolean, valueGetter?:(row:any)=>any,};
+    params?:{cellRenderer?:(row:any, index?:number)=>any, apply?:boolean, valueGetter?:(row:any)=>any,value?:string[]};
 }
 export interface GridOptions{
     classNames?:string;
