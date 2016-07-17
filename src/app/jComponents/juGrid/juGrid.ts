@@ -197,7 +197,7 @@ export class juGrid implements OnInit, OnChanges, OnDestroy {
         tpl.push('<thead>');
         tpl.push(this.getHeader(this.options.columnDefs));
         tpl.push('</thead>');
-        tpl.push('<tbody>');
+        tpl.push('<tbody (click)="hideFilterWindow()">');
         tpl.push('<tr [ngClass]="config.trClass(row, i, f, l)" *ngFor="let row of viewList;let i = index;let f=first;let l = last">');
         this.options.columnDefs.forEach((item, index) => {
             tpl.push('<td ');
