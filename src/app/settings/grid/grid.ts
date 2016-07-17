@@ -32,7 +32,7 @@ export class gridExample implements OnInit {
         this.scholarGridOptions = {            
             pageSize:3, quickSearch:!true,                      
             columnDefs: [
-                { headerName: 'Name', field: 'name', sort:true, filter:'text'},
+                { headerName: 'Name', field: 'name', sort:true, filter:'set'},
                 { headerName: 'Education', field: 'education', sort:true, filter:'set'},
                 { headerName: 'Age', field: 'age', filter:'number', sort:true},
                 { headerName: 'Address', field: 'address'},

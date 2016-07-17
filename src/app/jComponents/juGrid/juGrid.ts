@@ -424,7 +424,7 @@ function getComponent(obj: any) {
         setData(data) {
             this.data = data;
             this._copyOfData=[...data];
-            this.isDataUpdated=true;
+            this.notifyFilter();
         }
         onPageChange(list) {
             async_call(() => { this.viewList = list; });
@@ -432,7 +432,7 @@ function getComponent(obj: any) {
         addItem(item) {
             this.data.unshift(item);
             this.pager.calculatePagelinkes();
-            this.isDataUpdated=true;
+            this.notifyFilter();
             this._copyOfData.unshift(item);
         }
         updateItem(item) {
@@ -441,7 +441,7 @@ function getComponent(obj: any) {
         removeItem(item) {
             this.data.splice(this.data.indexOf(item), 1);
             this.pager.calculatePagelinkes();
-            this.isDataUpdated=true;
+            this.notifyFilter();
             this._copyOfData.splice(this.data.indexOf(item), 1);
         }
         showMessage(message: string, messageCss: string) {
@@ -470,7 +470,7 @@ function getComponent(obj: any) {
         }
         private filterWindow: any;
         private currentFilter: any;
-        private isDataUpdated:boolean=false;
+        
         showFilter(colDef: any, event: MouseEvent) { 
             event.preventDefault();
             event.stopPropagation();
@@ -483,7 +483,7 @@ function getComponent(obj: any) {
             if (!this.filterWindow) {
                 this.filterWindow = jQuery(this.el.nativeElement).find('.filter-window');
             }
-            let parent = jQuery(event.target), parentOffset = parent.offset();
+            let parent = jQuery(event.target).parents('th'), parentOffset = parent.offset();
             this.buildFilter(colDef);
             this.filterWindow.find('.filter-content').html(colDef.filterApi.getGui());
             this.filterWindow.find('.title span').html(colDef.headerName);
@@ -513,18 +513,25 @@ function getComponent(obj: any) {
                     colDef.filterApi.init(colDef);
                    
                 }                
-                if (colDef.filter === 'set' && !colDef.params.value &&  this.isDataUpdated) {
+                if (colDef.filter === 'set' && !colDef.params.value && colDef.dataUpdated) {
                      colDef.filterApi.data= this._copyOfData
                         .map(item => {
                             return colDef.params.valueGetter ? colDef.params.valueGetter(item) : item[colDef.field];
                         }).filter((value: any, index: number, self: any[]) => self.indexOf(value) === index);
                     colDef.filterApi.bindData(colDef.filterApi.data);
-                    this.isDataUpdated=false;
+                    colDef.dataUpdted=false;
                 }
             } catch (e) {
                 console.error(e.message);
             }
 
+        }
+        notifyFilter(){
+             this.config.columnDefs.forEach(it=>{
+                 if(it.filter){
+                     it.dataUpdated=true;
+                 }
+             })
         }
         valueGetter(colDef: any) {
             try {
