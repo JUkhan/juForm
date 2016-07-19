@@ -11,9 +11,14 @@ export class AboutComponent implements OnInit {
   constructor() {
     // Do stuff
   }
-
+  data:any[];
   ngOnInit() {
-    console.log('Hello About');
+    this.data=[
+      {name:'Arif', hasChild:true, items:[
+        {name:'Belal'}
+      ]},
+      {name:'Shofi'}
+    ];
   }
   header:string='';
   show() {

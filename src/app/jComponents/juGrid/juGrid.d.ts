@@ -32,7 +32,10 @@ export interface GridOptions{
     removeItem?: (data:any) =>void;
     api?:{form:juForm, grid:juGrid};
     sspFn?:(params:{pageSize:number,pageNo:number, searchText:string})=>Observable<{totalPage:number, data:any[]}>;
-    onFormLoad?: (form: juForm) =>void;   
+    onFormLoad?: (form: juForm) =>void;
+    trackBy?:string; 
+    enableTreeView?:boolean; 
+    lazyLoad?:(row:any)=>Observable<Array<any>>; 
 }
 export interface BaseFilter {
     init:(params:any)=>void;
