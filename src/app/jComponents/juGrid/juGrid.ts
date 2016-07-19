@@ -268,9 +268,15 @@ export class juGrid implements OnInit, OnChanges, OnDestroy {
 
             }
             else if (item.cellRenderer) {
-                tpl.push(` [innerHTML]="config.columnDefs[${index}].cellRenderer(row,i,f, l)">`);
+                if (index === 0) {
+                    tpl.push(`><a *ngIf="row.hasChild||row.items" href="javascript:;" (click)="toggleChildView(row)" title="Toggling for child view."><b class="fa fa-{{row.expand?'minus':'plus'}}-square-o"></b></a>
+                 <span class="child-renderer" [innerHTML]="config.columnDefs[${index}].cellRenderer(row,i,f, l)"></span>`);
+                }
+                else {
+                    tpl.push(` [innerHTML]="config.columnDefs[${index}].cellRenderer(row,i,f, l)">`);
+                }
             }
-            else if (item.field) {               
+            else if (item.field) {
                 if (index === 0) {
                     tpl.push(`><a *ngIf="row.hasChild||row.items" href="javascript:;" (click)="toggleChildView(row)" title="Toggling for child view."><b class="fa fa-{{row.expand?'minus':'plus'}}-square-o"></b></a>
                         {{row.${item.field}}}`);
@@ -314,14 +320,20 @@ export class juGrid implements OnInit, OnChanges, OnDestroy {
 
             }
             else if (item.cellRenderer) {
-                tpl.push(` [innerHTML]="config.columnDefs[${index}].cellRenderer(child1, i1, f1, l1)">`);
+                if (index === 0) {
+                    tpl.push(`><a *ngIf="child1.hasChild||child1.items" href="javascript:;" (click)="toggleChildView(child1)" title="Toggling for child view."><b class="fa fa-{{child1.expand?'minus':'plus'}}-square-o"></b></a>
+                 <span class="child-renderer" [innerHTML]="config.columnDefs[${index}].cellRenderer(child1,i1,f1, l1)"></span>`);
+                }
+                else {
+                    tpl.push(` [innerHTML]="config.columnDefs[${index}].cellRenderer(child1,i1,f1, l1)">`);
+                }
             }
             else if (item.field) {
                 if (index === 0) {
                     tpl.push(`><a *ngIf="child1.hasChild||child1.items" href="javascript:;" (click)="toggleChildView(child1)" title="Toggling for child view."><b class="fa fa-{{child1.expand?'minus':'plus'}}-square-o"></b></a>
                      {{child1.${item.field}}}`);
-                }else{
-                tpl.push(`>{{child1.${item.field}}}`);
+                } else {
+                    tpl.push(`>{{child1.${item.field}}}`);
                 }
             } else {
                 tpl.push(`>`);
@@ -330,7 +342,7 @@ export class juGrid implements OnInit, OnChanges, OnDestroy {
         });
         tpl.push('</tr>');
         //child 2------------------------
-         tpl.push('<template [ngIf]="child1.expand">');
+        tpl.push('<template [ngIf]="child1.expand">');
         //start child-template 1       
         tpl.push(`<template ngFor let-child2 [ngForOf]="child1.items" let-i2="index" let-f2="first" let-l2="last" ${this.options.trackBy ? '[ngForTrackBy]="trackByResolver()"' : ''}>`);
         tpl.push('<tr [ngClass]="config.trClass(child2, i2, f2, l2)">');
@@ -357,15 +369,21 @@ export class juGrid implements OnInit, OnChanges, OnDestroy {
                 });
 
             }
-            else if (item.cellRenderer) {
-                tpl.push(` [innerHTML]="config.columnDefs[${index}].cellRenderer(child2, i2, f2, l2)">`);
+            else if (item.cellRenderer) {               
+                if (index === 0) {
+                    tpl.push(`><a *ngIf="child2.hasChild||child2.items" href="javascript:;" (click)="toggleChildView(child2)" title="Toggling for child view."><b class="fa fa-{{child2.expand?'minus':'plus'}}-square-o"></b></a>
+                 <span class="child-renderer" [innerHTML]="config.columnDefs[${index}].cellRenderer(child2,i2,f2, l2)"></span>`);
+                }
+                else {
+                    tpl.push(` [innerHTML]="config.columnDefs[${index}].cellRenderer(child2,i2,f2, l2)">`);
+                }
             }
             else if (item.field) {
                 if (index === 0) {
                     tpl.push(`><a *ngIf="child2.hasChild||child2.items" href="javascript:;" (click)="toggleChildView(child2)" title="Toggling for child view."><b class="fa fa-{{child2.expand?'minus':'plus'}}-square-o"></b></a>
                      {{child2.${item.field}}}`);
-                }else{
-                tpl.push(`>{{child2.${item.field}}}`);
+                } else {
+                    tpl.push(`>{{child2.${item.field}}}`);
                 }
             } else {
                 tpl.push(`>`);
@@ -402,14 +420,20 @@ export class juGrid implements OnInit, OnChanges, OnDestroy {
 
             }
             else if (item.cellRenderer) {
-                tpl.push(` [innerHTML]="config.columnDefs[${index}].cellRenderer(child3, i3, f3, l3)">`);
+              if (index === 0) {
+                    tpl.push(`><a *ngIf="child3.hasChild||child3.items" href="javascript:;" (click)="toggleChildView(child3)" title="Toggling for child view."><b class="fa fa-{{child3.expand?'minus':'plus'}}-square-o"></b></a>
+                 <span class="child-renderer" [innerHTML]="config.columnDefs[${index}].cellRenderer(child3,i3,f3, l3)"></span>`);
+                }
+                else {
+                    tpl.push(` [innerHTML]="config.columnDefs[${index}].cellRenderer(child3,i3,f3, l3)">`);
+                }
             }
             else if (item.field) {
                 if (index === 0) {
                     tpl.push(`><a *ngIf="child3.hasChild||child3.items" href="javascript:;" (click)="toggleChildView(child3)" title="Toggling for child view."><b class="fa fa-{{child3.expand?'minus':'plus'}}-square-o"></b></a>
                      {{child3.${item.field}}}`);
-                }else{
-                tpl.push(`>{{child3.${item.field}}}`);
+                } else {
+                    tpl.push(`>{{child3.${item.field}}}`);
                 }
             } else {
                 tpl.push(`>`);
@@ -418,7 +442,7 @@ export class juGrid implements OnInit, OnChanges, OnDestroy {
         });
         tpl.push('</tr>');
         //child 4-------------------
-       tpl.push('<template [ngIf]="child3.expand">');
+        tpl.push('<template [ngIf]="child3.expand">');
         //start child-template 1       
         tpl.push(`<template ngFor let-child4 [ngForOf]="child3.items" let-i4="index" let-f4="first" let-l4="last" ${this.options.trackBy ? '[ngForTrackBy]="trackByResolver()"' : ''}>`);
         tpl.push('<tr [ngClass]="config.trClass(child4, i4, f4, l4)">');
@@ -446,14 +470,20 @@ export class juGrid implements OnInit, OnChanges, OnDestroy {
 
             }
             else if (item.cellRenderer) {
-                tpl.push(` [innerHTML]="config.columnDefs[${index}].cellRenderer(child4, i4, f4, l4)">`);
+                if (index === 0) {
+                    tpl.push(`><a *ngIf="child4.hasChild||child4.items" href="javascript:;" (click)="toggleChildView(child4)" title="Toggling for child view."><b class="fa fa-{{child4.expand?'minus':'plus'}}-square-o"></b></a>
+                 <span class="child-renderer" [innerHTML]="config.columnDefs[${index}].cellRenderer(child4,i4,f4, l4)"></span>`);
+                }
+                else {
+                    tpl.push(` [innerHTML]="config.columnDefs[${index}].cellRenderer(child4,i4,f4, l4)">`);
+                }
             }
             else if (item.field) {
                 if (index === 0) {
                     tpl.push(`><a *ngIf="child4.hasChild||child4.items" href="javascript:;" (click)="toggleChildView(child4)" title="Toggling for child view."><b class="fa fa-{{child4.expand?'minus':'plus'}}-square-o"></b></a>
                      {{child4.${item.field}}}`);
-                }else{
-                tpl.push(`>{{child4.${item.field}}}`);
+                } else {
+                    tpl.push(`>{{child4.${item.field}}}`);
                 }
             } else {
                 tpl.push(`>`);
@@ -490,14 +520,20 @@ export class juGrid implements OnInit, OnChanges, OnDestroy {
 
             }
             else if (item.cellRenderer) {
-                tpl.push(` [innerHTML]="config.columnDefs[${index}].cellRenderer(child5, i5, f5, l5)">`);
+                if (index === 0) {
+                    tpl.push(`><a *ngIf="child5.hasChild||child5.items" href="javascript:;" (click)="toggleChildView(child5)" title="Toggling for child view."><b class="fa fa-{{child5.expand?'minus':'plus'}}-square-o"></b></a>
+                 <span class="child-renderer" [innerHTML]="config.columnDefs[${index}].cellRenderer(child5,i5,f5, l5)"></span>`);
+                }
+                else {
+                    tpl.push(` [innerHTML]="config.columnDefs[${index}].cellRenderer(child5,i5,f5, l5)">`);
+                }
             }
             else if (item.field) {
                 if (index === 0) {
                     tpl.push(`><a *ngIf="child5.hasChild||child5.items" href="javascript:;" (click)="toggleChildView(child5)" title="Toggling for child view."><b class="fa fa-{{child5.expand?'minus':'plus'}}-square-o"></b></a>
                      {{child2.${item.field}}}`);
-                }else{
-                tpl.push(`>{{child2.${item.field}}}`);
+                } else {
+                    tpl.push(`>{{child2.${item.field}}}`);
                 }
             } else {
                 tpl.push(`>`);
@@ -506,7 +542,7 @@ export class juGrid implements OnInit, OnChanges, OnDestroy {
         });
         tpl.push('</tr>');
         //child 6-------------------
-       
+
         //end child 6--------------------
         tpl.push('</template>');
         tpl.push('</template>');
@@ -771,10 +807,10 @@ function getComponent(obj: any) {
         private currentFilter: any;
         toggleChildView(row: any) {
             row.expand = !row.expand;
-            if(!(row.items && row.items.length>0) && this.config.lazyLoad){
-                this.config.lazyLoad(row).subscribe(next=>{
-                    row.items=next;
-                });                
+            if (!(row.items && row.items.length > 0) && this.config.lazyLoad) {
+                this.config.lazyLoad(row).subscribe(next => {
+                    row.items = next;
+                });
             }
         }
         showFilter(colDef: any, event: MouseEvent) {
