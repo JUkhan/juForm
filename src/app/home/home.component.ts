@@ -30,7 +30,7 @@ export class HomeComponent implements OnInit {
                                     { field: 'name', label: 'Name1', type: 'text', validators: [FV.required, FV.minLength(5)] },
                                     { field: 'country', change: e => console.log(e), label: 'Country', type: 'select', validators: FV.required },
                                     { field: 'address', label: 'Address', type: 'text', validators: FV.required },
-                                    [{ field: 'age', labelSize: 4, size: 6 }, { field: 'address1.post', label: 'Post', type: 'text', size: 4, offset: 2, validators: FV.required }],
+                                    [{ field: 'age', labelSize: 4, size: 6 }, { field: 'address1.post', label: 'Post', type: 'datepicker', size: 4, offset: 2, validators: FV.required }],
                                     { field: 'Gender', label: 'Gender', type: 'select', data: [{ name: 'Male', value: 1 }, { name: 'Female', value: 2 }] },
                                     { field: 'description', label: 'Description', type: 'textarea' }
                                 ]

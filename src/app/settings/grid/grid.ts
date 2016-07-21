@@ -30,9 +30,9 @@ export class gridExample implements OnInit {
      }
     private initScholar() {
         this.scholarGridOptions = { level:10,           
-            pageSize:3, quickSearch:!true, crud:false, enableTreeView:true, lazyLoad:this.service.getChildData,                       
+            pageSize:3, quickSearch:false,                        
             columnDefs: [
-                { headerName: 'Name', field: 'name', sort:true, filter:'set', cellRenderer:(_, i)=>_.name+'-o'+i},
+                { headerName: 'Name', field: 'name', sort:true, filter:'set'},
                 { headerName: 'Education', field: 'education', sort:true, filter:'set'},
                 { headerName: 'Age', field: 'age', filter:'number', sort:true},
                 { headerName: 'Address', field: 'address'},

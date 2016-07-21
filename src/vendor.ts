@@ -12,12 +12,6 @@ import 'rxjs';
 // Other vendors for example jQuery, Lodash or Bootstrap
 // You can import js, ts, css, sass, ...
 
-import './lib/jquery.js';
+
 import 'moment/moment.js';
 import 'lodash/lodash.js';
-import 'bootstrap/dist/js/bootstrap.js';
-//import './lib/datepicker/js/bootstrap-datepicker.js';
-//css
-import 'bootstrap/dist/css/bootstrap.css';
-import 'font-awesome/css/font-awesome.css';
-import './lib/datepicker/css/bootstrap-datepicker.css';
