@@ -28,7 +28,8 @@ export class AppComponent {
          {name:'Setting1', link:'/set1', icon: 'fa fa-home'},
          {name:'Grid', link:'/grid', icon: 'fa fa-home'},
       ]},
-      {name:'About', link:'/about', icon: 'fa fa-male'}
+      {name:'About', link:'/about', icon: 'fa fa-male'},
+      {name:'Window', link:'/window', icon: 'fa fa-gear'}
     ];
   }
 }

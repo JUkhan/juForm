@@ -5,5 +5,5 @@ export * from './juPager';
 export * from './juMenu';
 export * from './uiService';
 export * from './juPanel';
-
+export * from './parentWindow';
 

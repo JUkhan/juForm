@@ -1,0 +1,20 @@
+<div class="window">
+    <div class="wnav">
+        <input type="button" class="btn btn-success" value="Form" (click)="showChild('form')">
+        <input type="button" class="btn btn-success" value="Grid" (click)="showChild('grid')">
+        <input type="button" class="btn btn-success" value="About" (click)="showChild('about')">
+    </div>
+    <div class="wcontent" #container></div>
+    <div class="footer" #footer>
+        <ul class="list-group">
+            <li class="list-group-item" *ngFor="let item of minList" [title]="item.title">                 
+                <span>{{item.title}} </span>
+                <span class="">
+                    <a href="javascript:;" title="Open" (click)="expandWindow(item)"><b class="fa fa-expand"></b></a>
+                    <a href="javascript:;" title="Close" (click)="closeWindow(item)"><b class="fa fa-remove"></b></a>
+                 </span>
+                </li>
+            
+        </ul>
+    </div>
+</div>
