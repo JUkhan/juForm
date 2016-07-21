@@ -109,6 +109,10 @@ export class juGrid implements OnInit, OnChanges, OnDestroy {
         if (!('trClass' in this.options)) {
             this.options.trClass = () => null;
         }
+        if (!('level' in this.options)) {
+            this.options.level = 5;
+        }
+        
         if (this.options.crud) {
             this.options.newItem = () => {
                 this._oldItem = null;
@@ -238,333 +242,83 @@ export class juGrid implements OnInit, OnChanges, OnDestroy {
         tpl.push('</tr>');
         return tpl.join('');
     }
+    private getParams(row: string, level: number) {
+        return level === 0 ? `${row}, i, f, l` : `${row}, i${level}, f${level}, l${level}`;
+    }
+    private getLevel(index: number, level: number) {
+        return index === 0 ? `class="level-${level}"` : '';
+    }
+    private renderTr(row: string, level: number, previousChild:string='row') {
+        let tpl: any[] = [];
+        if (level > 0) {
+            tpl.push(`<template [ngIf]="${previousChild}.expand">`);
+            tpl.push(`<template ngFor let-${row} [ngForOf]="${previousChild}.items" let-i${level}="index" let-f${level}="first" let-l${level}="last" ${this.options.trackBy ? '[ngForTrackBy]="trackByResolver()"' : ''}>`);
+        }
+        tpl.push(`<tr [ngClass]="config.trClass(${this.getParams(row, level)})">`);
+        this.options.columnDefs.forEach((item, index) => {
+            tpl.push(`<td ${this.getLevel(index, level)}`);
+            if (item.tdClass) {
+                tpl.push(`[ngClass]="config.columnDefs[${index}].tdClass(${this.getParams(row, level)})"`);
+            }
+            if (item.action) {
+                tpl.push('>');
+                if (index === 0) {
+                    tpl.push(`<a *ngIf="${row}.hasChild||${row}.items" href="javascript:;" (click)="toggleChildView(${row})" title="Toggling for child view."><b class="fa fa-{{${row}.expand?'minus':'plus'}}-square-o"></b></a>`);
+                }
+                item.action.forEach((ac, aci) => {
+                    if (item.headerName === 'crud') {
+                        if (ac.enable == true) {
+                            tpl.push(` <a href="javascript:;" title="${ac.title}" (click)="config.columnDefs[${index}].action[${aci}].click(${row})"><b class="${ac.icon}"></b></a> `);
+                        }
+                    }
+                    else {
+                        tpl.push(` <a href="javascript:;" title="${ac.title}" (click)="config.columnDefs[${index}].action[${aci}].click(${row})"><b class="${ac.icon}"></b></a> `);
+                    }
+
+                });
+
+            }
+            else if (item.cellRenderer) {
+                if (index === 0) {
+                    tpl.push(`><a *ngIf="${row}.hasChild||${row}.items" href="javascript:;" (click)="toggleChildView(${row})" title="Toggling for child view."><b class="fa fa-{{${row}.expand?'minus':'plus'}}-square-o"></b></a>
+                 <span class="child-renderer" [innerHTML]="config.columnDefs[${index}].cellRenderer(${this.getParams(row, level)})"></span>`);
+                }
+                else {
+                    tpl.push(` [innerHTML]="config.columnDefs[${index}].cellRenderer(${this.getParams(row, level)})">`);
+                }
+            }
+            else if (item.field) {
+                if (index === 0) {
+                    tpl.push(`><a *ngIf="${row}.hasChild||${row}.items" href="javascript:;" (click)="toggleChildView(${row})" title="Toggling for child view."><b class="fa fa-{{${row}.expand?'minus':'plus'}}-square-o"></b></a>
+                        {{${row}.${item.field}}}`);
+                } else {
+                    tpl.push(`>{{${row}.${item.field}}}`);
+                }
+            } else {
+                tpl.push(`>`);
+            }
+            tpl.push('</td>');
+        });
+        tpl.push('</tr>');
+
+        return tpl.join('');
+    }
     private getTreeView() {
         let tpl: any[] = [];
-        //start template 1       
         tpl.push(`<template ngFor let-row [ngForOf]="viewList" let-i="index" let-f="first" let-l="last" ${this.options.trackBy ? '[ngForTrackBy]="trackByResolver()"' : ''}>`);
-        //start parent row
-        tpl.push('<tr [ngClass]="config.trClass(row, i, f, l)">');
-        this.options.columnDefs.forEach((item, index) => {
-            tpl.push('<td ');
-            if (item.tdClass) {
-                tpl.push(`[ngClass]="config.columnDefs[${index}].tdClass(row, i, f, l)"`);
-            }
-            if (item.action) {
-                tpl.push('>');
-                if (index === 0) {
-                    tpl.push(`<a *ngIf="row.hasChild||row.items" href="javascript:;" (click)="toggleChildView(row)" title="Toggling for child view."><b class="fa fa-{{row.expand?'minus':'plus'}}-square-o"></b></a>`);
-                }
-                item.action.forEach((ac, aci) => {
-                    if (item.headerName === 'crud') {
-                        if (ac.enable == true) {
-                            tpl.push(` <a href="javascript:;" title="${ac.title}" (click)="config.columnDefs[${index}].action[${aci}].click(row)"><b class="${ac.icon}"></b></a> `);
-                        }
-                    }
-                    else {
-                        tpl.push(` <a href="javascript:;" title="${ac.title}" (click)="config.columnDefs[${index}].action[${aci}].click(row)"><b class="${ac.icon}"></b></a> `);
-                    }
-
-                });
-
-            }
-            else if (item.cellRenderer) {
-                if (index === 0) {
-                    tpl.push(`><a *ngIf="row.hasChild||row.items" href="javascript:;" (click)="toggleChildView(row)" title="Toggling for child view."><b class="fa fa-{{row.expand?'minus':'plus'}}-square-o"></b></a>
-                 <span class="child-renderer" [innerHTML]="config.columnDefs[${index}].cellRenderer(row,i,f, l)"></span>`);
-                }
-                else {
-                    tpl.push(` [innerHTML]="config.columnDefs[${index}].cellRenderer(row,i,f, l)">`);
-                }
-            }
-            else if (item.field) {
-                if (index === 0) {
-                    tpl.push(`><a *ngIf="row.hasChild||row.items" href="javascript:;" (click)="toggleChildView(row)" title="Toggling for child view."><b class="fa fa-{{row.expand?'minus':'plus'}}-square-o"></b></a>
-                        {{row.${item.field}}}`);
-                } else {
-                    tpl.push(`>{{row.${item.field}}}`);
-                }
-            } else {
-                tpl.push(`>`);
-            }
-            tpl.push('</td>');
-        });
-        tpl.push('</tr>');
-        //end parent row
-
-        //start child 1
-        tpl.push('<template [ngIf]="row.expand">');
-        //start child-template 1       
-        tpl.push(`<template ngFor let-child1 [ngForOf]="row.items" let-i1="index" let-f1="first" let-l1="last" ${this.options.trackBy ? '[ngForTrackBy]="trackByResolver()"' : ''}>`);
-        tpl.push('<tr [ngClass]="config.trClass(child1, i1, f1, l1)">');
-        this.options.columnDefs.forEach((item, index) => {
-            tpl.push(`<td ${index === 0 ? 'class="level-1"' : ''}`);
-            if (item.tdClass) {
-                tpl.push(`[ngClass]="config.columnDefs[${index}].tdClass(child1, i1, f1, l1)"`);
-            }
-            if (item.action) {
-                tpl.push('>');
-                if (index === 0) {
-                    tpl.push(`<a *ngIf="child1.hasChild||child1.items" href="javascript:;" (click)="toggleChildView(child1)" title="Toggling for child view."><b class="fa fa-{{child1.expand?'minus':'plus'}}-square-o"></b></a> `);
-                }
-                item.action.forEach((ac, aci) => {
-                    if (item.headerName === 'crud') {
-                        if (ac.enable == true) {
-                            tpl.push(`<a href="javascript:;" title="${ac.title}" (click)="config.columnDefs[${index}].action[${aci}].click(child1)"><b class="${ac.icon}"></b></a> `);
-                        }
-                    }
-                    else {
-                        tpl.push(`<a href="javascript:;" title="${ac.title}" (click)="config.columnDefs[${index}].action[${aci}].click(child1)"><b class="${ac.icon}"></b></a> `);
-                    }
-
-                });
-
-            }
-            else if (item.cellRenderer) {
-                if (index === 0) {
-                    tpl.push(`><a *ngIf="child1.hasChild||child1.items" href="javascript:;" (click)="toggleChildView(child1)" title="Toggling for child view."><b class="fa fa-{{child1.expand?'minus':'plus'}}-square-o"></b></a>
-                 <span class="child-renderer" [innerHTML]="config.columnDefs[${index}].cellRenderer(child1,i1,f1, l1)"></span>`);
-                }
-                else {
-                    tpl.push(` [innerHTML]="config.columnDefs[${index}].cellRenderer(child1,i1,f1, l1)">`);
-                }
-            }
-            else if (item.field) {
-                if (index === 0) {
-                    tpl.push(`><a *ngIf="child1.hasChild||child1.items" href="javascript:;" (click)="toggleChildView(child1)" title="Toggling for child view."><b class="fa fa-{{child1.expand?'minus':'plus'}}-square-o"></b></a>
-                     {{child1.${item.field}}}`);
-                } else {
-                    tpl.push(`>{{child1.${item.field}}}`);
-                }
-            } else {
-                tpl.push(`>`);
-            }
-            tpl.push('</td>');
-        });
-        tpl.push('</tr>');
-        //child 2------------------------
-        tpl.push('<template [ngIf]="child1.expand">');
-        //start child-template 1       
-        tpl.push(`<template ngFor let-child2 [ngForOf]="child1.items" let-i2="index" let-f2="first" let-l2="last" ${this.options.trackBy ? '[ngForTrackBy]="trackByResolver()"' : ''}>`);
-        tpl.push('<tr [ngClass]="config.trClass(child2, i2, f2, l2)">');
-        this.options.columnDefs.forEach((item, index) => {
-            tpl.push(`<td ${index === 0 ? 'class="level-2"' : ''}`);
-            if (item.tdClass) {
-                tpl.push(`[ngClass]="config.columnDefs[${index}].tdClass(child2, i2, f2, l2)"`);
-            }
-            if (item.action) {
-                tpl.push('>');
-                if (index === 0) {
-                    tpl.push(`<a *ngIf="child2.hasChild||child2.items" href="javascript:;" (click)="toggleChildView(child2)" title="Toggling for child view."><b class="fa fa-{{child2.expand?'minus':'plus'}}-square-o"></b></a> `);
-                }
-                item.action.forEach((ac, aci) => {
-                    if (item.headerName === 'crud') {
-                        if (ac.enable == true) {
-                            tpl.push(`<a href="javascript:;" title="${ac.title}" (click)="config.columnDefs[${index}].action[${aci}].click(child2)"><b class="${ac.icon}"></b></a> `);
-                        }
-                    }
-                    else {
-                        tpl.push(`<a href="javascript:;" title="${ac.title}" (click)="config.columnDefs[${index}].action[${aci}].click(child2)"><b class="${ac.icon}"></b></a> `);
-                    }
-
-                });
-
-            }
-            else if (item.cellRenderer) {               
-                if (index === 0) {
-                    tpl.push(`><a *ngIf="child2.hasChild||child2.items" href="javascript:;" (click)="toggleChildView(child2)" title="Toggling for child view."><b class="fa fa-{{child2.expand?'minus':'plus'}}-square-o"></b></a>
-                 <span class="child-renderer" [innerHTML]="config.columnDefs[${index}].cellRenderer(child2,i2,f2, l2)"></span>`);
-                }
-                else {
-                    tpl.push(` [innerHTML]="config.columnDefs[${index}].cellRenderer(child2,i2,f2, l2)">`);
-                }
-            }
-            else if (item.field) {
-                if (index === 0) {
-                    tpl.push(`><a *ngIf="child2.hasChild||child2.items" href="javascript:;" (click)="toggleChildView(child2)" title="Toggling for child view."><b class="fa fa-{{child2.expand?'minus':'plus'}}-square-o"></b></a>
-                     {{child2.${item.field}}}`);
-                } else {
-                    tpl.push(`>{{child2.${item.field}}}`);
-                }
-            } else {
-                tpl.push(`>`);
-            }
-            tpl.push('</td>');
-        });
-        tpl.push('</tr>');
-        //child 3-------------------
-        tpl.push('<template [ngIf]="child2.expand">');
-        //start child-template 1       
-        tpl.push(`<template ngFor let-child3 [ngForOf]="child2.items" let-i3="index" let-f3="first" let-l3="last" ${this.options.trackBy ? '[ngForTrackBy]="trackByResolver()"' : ''}>`);
-        tpl.push('<tr [ngClass]="config.trClass(child3, i3, f3, l3)">');
-        this.options.columnDefs.forEach((item, index) => {
-            tpl.push(`<td ${index === 0 ? 'class="level-3"' : ''}`);
-            if (item.tdClass) {
-                tpl.push(`[ngClass]="config.columnDefs[${index}].tdClass(child3, i3, f3, l3)"`);
-            }
-            if (item.action) {
-                tpl.push('>');
-                if (index === 0) {
-                    tpl.push(`<a *ngIf="child3.hasChild||child3.items" href="javascript:;" (click)="toggleChildView(child3)" title="Toggling for child view."><b class="fa fa-{{child3.expand?'minus':'plus'}}-square-o"></b></a> `);
-                }
-                item.action.forEach((ac, aci) => {
-                    if (item.headerName === 'crud') {
-                        if (ac.enable == true) {
-                            tpl.push(`<a href="javascript:;" title="${ac.title}" (click)="config.columnDefs[${index}].action[${aci}].click(child3)"><b class="${ac.icon}"></b></a> `);
-                        }
-                    }
-                    else {
-                        tpl.push(`<a href="javascript:;" title="${ac.title}" (click)="config.columnDefs[${index}].action[${aci}].click(child3)"><b class="${ac.icon}"></b></a> `);
-                    }
-
-                });
-
-            }
-            else if (item.cellRenderer) {
-              if (index === 0) {
-                    tpl.push(`><a *ngIf="child3.hasChild||child3.items" href="javascript:;" (click)="toggleChildView(child3)" title="Toggling for child view."><b class="fa fa-{{child3.expand?'minus':'plus'}}-square-o"></b></a>
-                 <span class="child-renderer" [innerHTML]="config.columnDefs[${index}].cellRenderer(child3,i3,f3, l3)"></span>`);
-                }
-                else {
-                    tpl.push(` [innerHTML]="config.columnDefs[${index}].cellRenderer(child3,i3,f3, l3)">`);
-                }
-            }
-            else if (item.field) {
-                if (index === 0) {
-                    tpl.push(`><a *ngIf="child3.hasChild||child3.items" href="javascript:;" (click)="toggleChildView(child3)" title="Toggling for child view."><b class="fa fa-{{child3.expand?'minus':'plus'}}-square-o"></b></a>
-                     {{child3.${item.field}}}`);
-                } else {
-                    tpl.push(`>{{child3.${item.field}}}`);
-                }
-            } else {
-                tpl.push(`>`);
-            }
-            tpl.push('</td>');
-        });
-        tpl.push('</tr>');
-        //child 4-------------------
-        tpl.push('<template [ngIf]="child3.expand">');
-        //start child-template 1       
-        tpl.push(`<template ngFor let-child4 [ngForOf]="child3.items" let-i4="index" let-f4="first" let-l4="last" ${this.options.trackBy ? '[ngForTrackBy]="trackByResolver()"' : ''}>`);
-        tpl.push('<tr [ngClass]="config.trClass(child4, i4, f4, l4)">');
-        this.options.columnDefs.forEach((item, index) => {
-            tpl.push(`<td ${index === 0 ? 'class="level-4"' : ''}`);
-            if (item.tdClass) {
-                tpl.push(`[ngClass]="config.columnDefs[${index}].tdClass(child4, i4, f4, l4)"`);
-            }
-            if (item.action) {
-                tpl.push('>');
-                if (index === 0) {
-                    tpl.push(`<a *ngIf="child4.hasChild||child4.items" href="javascript:;" (click)="toggleChildView(child4)" title="Toggling for child view."><b class="fa fa-{{child4.expand?'minus':'plus'}}-square-o"></b></a> `);
-                }
-                item.action.forEach((ac, aci) => {
-                    if (item.headerName === 'crud') {
-                        if (ac.enable == true) {
-                            tpl.push(`<a href="javascript:;" title="${ac.title}" (click)="config.columnDefs[${index}].action[${aci}].click(child4)"><b class="${ac.icon}"></b></a> `);
-                        }
-                    }
-                    else {
-                        tpl.push(`<a href="javascript:;" title="${ac.title}" (click)="config.columnDefs[${index}].action[${aci}].click(child4)"><b class="${ac.icon}"></b></a> `);
-                    }
-
-                });
-
-            }
-            else if (item.cellRenderer) {
-                if (index === 0) {
-                    tpl.push(`><a *ngIf="child4.hasChild||child4.items" href="javascript:;" (click)="toggleChildView(child4)" title="Toggling for child view."><b class="fa fa-{{child4.expand?'minus':'plus'}}-square-o"></b></a>
-                 <span class="child-renderer" [innerHTML]="config.columnDefs[${index}].cellRenderer(child4,i4,f4, l4)"></span>`);
-                }
-                else {
-                    tpl.push(` [innerHTML]="config.columnDefs[${index}].cellRenderer(child4,i4,f4, l4)">`);
-                }
-            }
-            else if (item.field) {
-                if (index === 0) {
-                    tpl.push(`><a *ngIf="child4.hasChild||child4.items" href="javascript:;" (click)="toggleChildView(child4)" title="Toggling for child view."><b class="fa fa-{{child4.expand?'minus':'plus'}}-square-o"></b></a>
-                     {{child4.${item.field}}}`);
-                } else {
-                    tpl.push(`>{{child4.${item.field}}}`);
-                }
-            } else {
-                tpl.push(`>`);
-            }
-            tpl.push('</td>');
-        });
-        tpl.push('</tr>');
-        //child 5-------------------
-        tpl.push('<template [ngIf]="child4.expand">');
-        //start child-template 1       
-        tpl.push(`<template ngFor let-child5 [ngForOf]="child4.items" let-i5="index" let-f5="first" let-l5="last" ${this.options.trackBy ? '[ngForTrackBy]="trackByResolver()"' : ''}>`);
-        tpl.push('<tr [ngClass]="config.trClass(child5, i5, f5, l5)">');
-        this.options.columnDefs.forEach((item, index) => {
-            tpl.push(`<td ${index === 0 ? 'class="level-5"' : ''}`);
-            if (item.tdClass) {
-                tpl.push(`[ngClass]="config.columnDefs[${index}].tdClass(child5, i5, f5, l5)"`);
-            }
-            if (item.action) {
-                tpl.push('>');
-                if (index === 0) {
-                    tpl.push(`<a *ngIf="child5.hasChild||child5.items" href="javascript:;" (click)="toggleChildView(child5)" title="Toggling for child view."><b class="fa fa-{{child5.expand?'minus':'plus'}}-square-o"></b></a> `);
-                }
-                item.action.forEach((ac, aci) => {
-                    if (item.headerName === 'crud') {
-                        if (ac.enable == true) {
-                            tpl.push(`<a href="javascript:;" title="${ac.title}" (click)="config.columnDefs[${index}].action[${aci}].click(child5)"><b class="${ac.icon}"></b></a> `);
-                        }
-                    }
-                    else {
-                        tpl.push(`<a href="javascript:;" title="${ac.title}" (click)="config.columnDefs[${index}].action[${aci}].click(child5)"><b class="${ac.icon}"></b></a> `);
-                    }
-
-                });
-
-            }
-            else if (item.cellRenderer) {
-                if (index === 0) {
-                    tpl.push(`><a *ngIf="child5.hasChild||child5.items" href="javascript:;" (click)="toggleChildView(child5)" title="Toggling for child view."><b class="fa fa-{{child5.expand?'minus':'plus'}}-square-o"></b></a>
-                 <span class="child-renderer" [innerHTML]="config.columnDefs[${index}].cellRenderer(child5,i5,f5, l5)"></span>`);
-                }
-                else {
-                    tpl.push(` [innerHTML]="config.columnDefs[${index}].cellRenderer(child5,i5,f5, l5)">`);
-                }
-            }
-            else if (item.field) {
-                if (index === 0) {
-                    tpl.push(`><a *ngIf="child5.hasChild||child5.items" href="javascript:;" (click)="toggleChildView(child5)" title="Toggling for child view."><b class="fa fa-{{child5.expand?'minus':'plus'}}-square-o"></b></a>
-                     {{child2.${item.field}}}`);
-                } else {
-                    tpl.push(`>{{child2.${item.field}}}`);
-                }
-            } else {
-                tpl.push(`>`);
-            }
-            tpl.push('</td>');
-        });
-        tpl.push('</tr>');
-        //child 6-------------------
-
-        //end child 6--------------------
+        tpl.push(this.renderTr('row', 0));
+        tpl.push(this.renderTr('child1', 1, 'row'));
+        
+        let temp: any[] = [];
+        for(let i=2;i<=this.options.level;i++){            
+            tpl.push(this.renderTr('child'+i, i, 'child'+(i-1)));
+            temp.push('</template></template>')
+        }
+        tpl.push(temp.join(''));
+        
         tpl.push('</template>');
         tpl.push('</template>');
-        //end child 5--------------------
         tpl.push('</template>');
-        tpl.push('</template>');
-        //end child 4--------------------
-        tpl.push('</template>');
-        tpl.push('</template>');
-        //end child 3--------------------
-        tpl.push('</template>');
-        tpl.push('</template>');
-        //end child 2
-        //--------------------------------
-        tpl.push('</template>');
-        //end child-template 1
-
-        tpl.push('</template>');
-        //end child 1
-
-        tpl.push('</template>');
-        //end template 1
         return tpl.join('');
     }
     private renderForm(tpl: any[]) {

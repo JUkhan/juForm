@@ -35,7 +35,8 @@ export interface GridOptions{
     onFormLoad?: (form: juForm) =>void;
     trackBy?:string; 
     enableTreeView?:boolean; 
-    lazyLoad?:(row:any)=>Observable<Array<any>>; 
+    lazyLoad?:(row:any)=>Observable<Array<any>>;
+    level?:number; 
 }
 export interface BaseFilter {
     init:(params:any)=>void;
