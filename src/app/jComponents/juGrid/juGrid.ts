@@ -1,5 +1,5 @@
-import {Component, OnInit, OnChanges, ChangeDetectionStrategy, ChangeDetectorRef,
-    OnDestroy, ViewContainerRef, Input, Output, EventEmitter,
+import {Component, OnInit, OnChanges, ChangeDetectionStrategy,
+    OnDestroy, ViewContainerRef, Input, Output, EventEmitter, Renderer, ViewChild,
     ComponentRef, ElementRef, DynamicComponentLoader, ViewEncapsulation} from '@angular/core';
 import {juForm, juSelect} from '../juForm';
 import {juPager} from '../juPager';
@@ -112,7 +112,7 @@ export class juGrid implements OnInit, OnChanges, OnDestroy {
         if (!('level' in this.options)) {
             this.options.level = 5;
         }
-        
+
         if (this.options.crud) {
             this.options.newItem = () => {
                 this._oldItem = null;
@@ -189,7 +189,7 @@ export class juGrid implements OnInit, OnChanges, OnDestroy {
         if (this.options.crud) {
             //this.renderForm(tpl);
         }
-        tpl.push(`<div class="filter-window">
+        tpl.push(`<div class="filter-window" #filterWindow>
         <div class="title" (click)="hideFilterWindow()"><span>Title</span><a href="javascript:;" title="Close filter window." ><b class="fa fa-remove"></b></a></div>
         <div class="filter-content"></div>
         </div>`)
@@ -201,10 +201,19 @@ export class juGrid implements OnInit, OnChanges, OnDestroy {
         tpl.push(this.getHeader(this.options.columnDefs));
         tpl.push('</thead>');
         tpl.push('<tbody (click)="hideFilterWindow()">');
-        tpl.push(this.options.enableTreeView ? this.getTreeView() : this.getPlainView());
+        tpl.push(this.options.enableCellEditing ? this.getCellEditing() : this.options.enableTreeView ? this.getTreeView() : this.getPlainView());
         tpl.push('</tbody>');
         tpl.push('</table>');
         tpl.push(`<div class="juPager" [linkPages]="config.linkPages" [pageSize]="config.pageSize" [data]="data" (onInit)="pagerInit($event)" (pageChange)="onPageChange($event)"></div>`);
+    }
+    private getCellEditing() {
+        let tpl: any[] = [];
+        tpl.push(`<tr *ngFor="let row of viewList;${this.options.trackBy ? 'trackBy:trackByResolver();' : ''}let i = index;let f=first;let l = last">`);
+        this.options.columnDefs.forEach((item, index) => {
+            tpl.push(`<td><input type="text" [(ngModel)]="row.${item.field}"></td>`);
+        });
+        tpl.push('</tr>');
+        return tpl.join('');
     }
     private getPlainView() {
         let tpl: any[] = [];
@@ -248,7 +257,7 @@ export class juGrid implements OnInit, OnChanges, OnDestroy {
     private getLevel(index: number, level: number) {
         return index === 0 ? `class="level-${level}"` : '';
     }
-    private renderTr(row: string, level: number, previousChild:string='row') {
+    private renderTr(row: string, level: number, previousChild: string = 'row') {
         let tpl: any[] = [];
         if (level > 0) {
             tpl.push(`<template [ngIf]="${previousChild}.expand">`);
@@ -308,14 +317,14 @@ export class juGrid implements OnInit, OnChanges, OnDestroy {
         tpl.push(`<template ngFor let-row [ngForOf]="viewList" let-i="index" let-f="first" let-l="last" ${this.options.trackBy ? '[ngForTrackBy]="trackByResolver()"' : ''}>`);
         tpl.push(this.renderTr('row', 0));
         tpl.push(this.renderTr('child1', 1, 'row'));
-        
+
         let temp: any[] = [];
-        for(let i=2;i<=this.options.level;i++){            
-            tpl.push(this.renderTr('child'+i, i, 'child'+(i-1)));
-            temp.push('</template></template>')
+        for (let i = 2; i <= this.options.level; i++) {
+            tpl.push(this.renderTr('child' + i, i, 'child' + (i - 1)));
+            temp.push('</template></template>');
         }
         tpl.push(temp.join(''));
-        
+
         tpl.push('</template>');
         tpl.push('</template>');
         tpl.push('</template>');
@@ -480,9 +489,10 @@ function getComponent(obj: any) {
         viewList: any[] = [];
         _copyOfData: any;
         private pager: juPager;
-        constructor(private el: ElementRef) {
+        constructor(private renderer: Renderer) {
 
         }
+        @ViewChild('filterWindow') filterWindowRef: ElementRef;
         ngOnInit() {
 
         }
@@ -577,7 +587,7 @@ function getComponent(obj: any) {
             this.currentFilter = colDef;
             colDef.isOpened = true;
             if (!this.filterWindow) {
-                this.filterWindow = jQuery(this.el.nativeElement).find('.filter-window');
+                this.filterWindow = jQuery(this.filterWindowRef.nativeElement);
             }
             let parent = jQuery(event.target).parents('th'), parentOffset = parent.offset();
             this.buildFilter(colDef);

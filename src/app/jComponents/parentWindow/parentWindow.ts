@@ -1,7 +1,7 @@
 import {Component, ViewChild, Renderer, ViewEncapsulation, ApplicationRef, ComponentRef, ElementRef, OnInit, OnDestroy, AfterViewInit, DynamicComponentLoader, Injector} from '@angular/core';
 import {ChildWindow} from './childWindow';
 import {WindowService} from './windowService';
-import {Observable, Subscription} from 'rxjs';
+import {Subscription} from 'rxjs';
 @Component({
     selector: 'pw',
     templateUrl: './parentWindow.html',
@@ -14,6 +14,7 @@ export class ParentWindow implements OnInit, OnDestroy {
     private childList: any;
     private placeHolder: any;
     private minList:any[]=[];
+    private subsList:Subscription[]=[];
     constructor(private renderer: Renderer,
         private dcl: DynamicComponentLoader,
         private injector: Injector,
@@ -24,24 +25,27 @@ export class ParentWindow implements OnInit, OnDestroy {
     @ViewChild('footer') footer: ElementRef;
     ngOnInit() {        
         this.childList = this.service.getChildList();
-        this.service.$minWin.subscribe(next=>{
+       this.subsList.push(this.service.$minWin.subscribe(next=>{
             this.minList.push(next);
-        });
-        Observable.fromEvent(window, 'resize').subscribe(next=>{
-             console.log('window height:',window.innerHeight);
-        })
+        }));
+        
     }
 
     ngOnDestroy() {
         this.service.destroyAll();
+        this.subsList.forEach(_=>{
+            if(!_.unsubscribe){
+                _.unsubscribe();
+            }
+        });
     }
     ngAfterViewInit() {
         this.service.pWin=this.container.nativeElement;
-        console.log('window height:',window.innerHeight);
+        //console.log('window height:',window.innerHeight);
     }
     private expandWindow(item){
         this.minList.splice(this.minList.indexOf(item), 1);
-        this.service.expand(item.id, false);
+        this.service.expandWindow(item.id, false);
     }
     private closeWindow(item){
         this.minList.splice(this.minList.indexOf(item), 1);

@@ -42,7 +42,7 @@ export class WindowService {
         window.title = wConfig.title;
 
     }
-    expand(windowId, isExpand: boolean = true) {
+    expandWindow(windowId, isExpand: boolean = true) {
         let window = this.childList[windowId].child.instance;
         if (isExpand) {
             window.adjustWidth(this.pWin.offsetWidth );

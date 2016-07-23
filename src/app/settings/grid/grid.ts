@@ -18,19 +18,15 @@ export class gridExample implements OnInit {
     scholarList: any[];
     constructor(private service:ApiService) { }
     ngOnInit() {
-        this.initScholar();
-         var x:GridOptions={
-                pageSize:4
-         };  
-
-           
+        this.initScholar();        
      }
      private onLoad(){        
-        this.service.get('scholar').subscribe(list=>{this.scholarList=list;});      
+        this.service.get('scholar')       
+        .subscribe(list=>{this.scholarList=list;});      
      }
     private initScholar() {
-        this.scholarGridOptions = { level:10,           
-            pageSize:3, quickSearch:false,                        
+        this.scholarGridOptions = { level:10,          
+            pageSize:3, quickSearch:true, crud:false, enableTreeView:true, lazyLoad:this.service.getChildData,                       
             columnDefs: [
                 { headerName: 'Name', field: 'name', sort:true, filter:'set'},
                 { headerName: 'Education', field: 'education', sort:true, filter:'set'},
@@ -44,7 +40,7 @@ export class gridExample implements OnInit {
                 labelSize: 3,                
                 inputs: [                    
                     { field: 'name', label: 'Name', type: 'text', validators: [FV.required, FV.minLength(5)] },
-                    { field: 'education', label: 'Education', type: 'text' },
+                    { field: 'education', label: 'Education', type: 'text', validators:FV.required },
                     { field: 'address', label: 'Address', type: 'text', validators:FV.required },
                     { field: 'description', label: 'Description', type: 'textarea' }
                 ],

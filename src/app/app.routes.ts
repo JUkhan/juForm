@@ -1,9 +1,6 @@
 import { Routes } from '@ngrx/router';
-
 import { HomeComponent } from './home';
-import { AboutComponent } from './about';
-import {gridExample} from './settings';
-import {ParentWindow} from './jComponents';
+
 export const routes: Routes = [
   {
     path: '/',
@@ -11,15 +8,15 @@ export const routes: Routes = [
   },
   {
     path: '/grid',
-    component:gridExample
+    loadComponent:()=>require('./settings').gridExample,
   },
   {
     path: '/about',
-    component:AboutComponent
+    loadComponent:()=>require('./about').AboutComponent
   }
   ,
   {
-    path: '/window',
-    component:ParentWindow
+    path: '/window',    
+    loadComponent:()=>require('./jComponents').ParentWindow
   }
 ];

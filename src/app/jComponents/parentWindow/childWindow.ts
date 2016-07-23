@@ -107,8 +107,8 @@ export class ChildWindow implements OnInit, OnDestroy, AfterViewInit {
        this.setStyle('display', 'none');
        this.service.minWindow(this.windowId);
     }
-    private minmaxWindow(event) {        
-        this.service.expand(this.windowId, this.isMax);
+    private expandWindow(event) {        
+        this.service.expandWindow(this.windowId, this.isMax);
         this.isMax = !this.isMax;
     }
     private moveWindow() {

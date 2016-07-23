@@ -103,7 +103,7 @@ export class juForm implements OnInit, OnDestroy, OnChanges {
             if (!this.options.buttons[button].click) {
                 this.options.buttons[button].click = () => { };
             }
-        }
+        } 
         if (this.model) {
             this.options = _.cloneDeep(this.options);
             if (juForm.FORM_LIST.size > 0) {
@@ -297,9 +297,14 @@ export class juForm implements OnInit, OnDestroy, OnChanges {
     //private firstTab: string = '';
     private activeTabs: any = {};
     private tabid = 0;
+   
     private getConfig() {
         var template: any[] = [], obj: any = {};
-        if (this.viewMode == 'panel') {
+        if(this.viewMode === 'table'){
+            this.renderTableLayout(template, this.options.inputs, 'config.inputs');
+            return { tpl: template.join(''), groupConfig: obj };
+        }
+        if (this.viewMode === 'panel') {
             template.push(`<div class="panel panel-${this.panelMode}">
             <div class="panel-heading" style="cursor:pointer" (click)="slideToggle()">
                 <h3 class="panel-title">${this.title}</h3>
@@ -307,7 +312,7 @@ export class juForm implements OnInit, OnDestroy, OnChanges {
             <div class="panel-body">
             <div *ngIf="message" [class]="messageCss">{{message}}</div>       
             `);
-        } else if (this.viewMode == 'popup') {
+        } else if (this.viewMode === 'popup') {
             template.push(`<div class="modal fade" tabindex="-1" role="dialog">    
                 <div class="modal-dialog">           
                     <div class="modal-content">
@@ -359,6 +364,67 @@ export class juForm implements OnInit, OnDestroy, OnChanges {
             template.push(`</div></div></div></div>`);
         }
         return { tpl: template.join(''), groupConfig: obj };
+    }
+    private renderTableLayout(template: any[], inputArr: any[], refPath: string) {
+        inputArr.forEach((item: any, index: number) => {
+            // if (Array.isArray(item)) {
+            //     template.push('<div class="form-group pbottom">');
+            //     this._setInputs(obj, template, item, refPath + `[${index}]`, false);
+            //     template.push('</div>');
+            // } else {
+                //this.isVertical = isRow;
+                item.exp = item.exp || '';
+                item.hideMsg = true;
+
+                this.options._events[item.field] = { hideMsg: item.validators ? false : true, type: item.type || 'text', field: item };
+                //if (!(item.tabConfig && this.isTab)) {
+                    if (item.field) {
+                        var cfield = item.field.split('.').join('_');
+                        //obj[cfield] = this._getGroupConfig(item);
+                        //obj[cfield].hideMsg = true;
+                    }
+                    switch (item.type) {
+                        case 'juSelect':
+                            if (!item.change) {
+                                item.change = (val: any) => { };
+                            }
+                            template.push(this._getjuSelectTemplate(item.field, item, refPath + `[${index}]`));
+                            break;
+                        case 'select':
+                            if (!item.change) {
+                                item.change = (val: any) => { };
+                            }
+                            template.push(this._getSelectTemplate(item.field, item, refPath + `[${index}]`));
+                            break;
+                        case 'html':
+                            template.push(item.content || '');
+                            break;
+                        case 'ckeditor':
+                            template.push(this._getCkEditorTemplate(item.field, item, refPath + `[${index}]`))
+                            break;
+                        case 'datepicker':
+                            item.config = item.config || {}
+                            if (!('autoclose' in item.config)) {
+                                item.config.autoclose = true;
+                            }
+                            template.push(this._getDateTemplate(item.field, item, refPath + `[${index}]`));
+                            break;
+                        case 'detail':
+                            //template.push(this._getDetailTemplate(item.field, item, refPath + `[${index}]`));
+                            break;
+                        case 'file':
+                            template.push(this._getFileTemplate(item.field, item, refPath + `[${index}]`));
+                            break;
+                        case 'groupLayout':
+                            //this.resolveGroupLayout(item, refPath, index, obj, template);
+                            break;
+                        default:
+                            template.push(this._getInputTemplate(item.field, item, refPath + `[${index}]`));
+                            break;
+                    }
+                //}
+            //}
+        });
     }
     private _error_check = "1";
     private _setInputs(obj: any, template: any[], inputArr: any[], refPath: string, isRow = true) {
@@ -602,11 +668,15 @@ export class juForm implements OnInit, OnDestroy, OnChanges {
             labelPos = input.labelPos || this.options.labelPos || 'top',
             cfield = fieldName.split('.').join('_');
         input.type = input.type || 'text';
+         
         let element = (input.type === 'textarea') ?
             `<textarea (keyup)="vlidate_input(model.${fieldName}, ${config})" [disabled]="${config}.disabled" [(ngModel)]="model.${fieldName}" class="form-control ${cfield}" placeholder="Enter ${input.label || fieldName}"></textarea>`
             :
             `<input type="${input.type}" (keyup)="vlidate_input(model.${fieldName}, ${config})" [disabled]="${config}.disabled"   [(ngModel)]="model.${fieldName}" class="form-control ${cfield}" placeholder="Enter ${input.label || fieldName}">
             <div *ngIf="!${config}.hideMsg" class="alert alert-danger" [innerHTML]="${config}.message"></div>`;
+        if(this.viewMode === 'table'){
+             return `<td>${element}</td>`;
+         }
         return this.getHtml(input, element, fieldName, labelPos, labelSize);
 
     }
