@@ -26,9 +26,9 @@ export class gridExample implements OnInit {
      }
     private initScholar() {
         this.scholarGridOptions = { level:10,          
-            pageSize:3, quickSearch:true, crud:false, enableTreeView:true, lazyLoad:this.service.getChildData,                       
+            pageSize:3, quickSearch:true, crud:false, enableCellEditing:true, enableTreeView:true, lazyLoad:this.service.getChildData,                       
             columnDefs: [
-                { headerName: 'Name', field: 'name', sort:true, filter:'set'},
+                { headerName: 'Name', field: 'name',width:140, sort:true, filter:'set', type:'juSelect'},
                 { headerName: 'Education', field: 'education', sort:true, filter:'set'},
                 { headerName: 'Age', field: 'age', filter:'number', sort:true},
                 { headerName: 'Address', field: 'address'},

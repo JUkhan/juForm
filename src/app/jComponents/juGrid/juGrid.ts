@@ -1,5 +1,5 @@
-import {Component, OnInit, OnChanges, ChangeDetectionStrategy,
-    OnDestroy, ViewContainerRef, Input, Output, EventEmitter, Renderer, ViewChild,
+import {Component, OnInit, OnChanges, ChangeDetectionStrategy, ContentChildren, QueryList,
+    OnDestroy, ViewContainerRef, Input, Output, EventEmitter, Renderer, ViewChild, 
     ComponentRef, ElementRef, DynamicComponentLoader, ViewEncapsulation} from '@angular/core';
 import {juForm, juSelect} from '../juForm';
 import {juPager} from '../juPager';
@@ -7,6 +7,7 @@ import {TextFilter} from './TextFilter';
 import {NumberFilter} from './NumberFilter';
 import {SetFilter} from './SetFilter';
 import {Observable, Subscription} from 'rxjs';
+import {rowEditor} from './rowEditor';
 
 declare var jQuery: any;
 @Component({
@@ -208,12 +209,51 @@ export class juGrid implements OnInit, OnChanges, OnDestroy {
     }
     private getCellEditing() {
         let tpl: any[] = [];
-        tpl.push(`<tr *ngFor="let row of viewList;${this.options.trackBy ? 'trackBy:trackByResolver();' : ''}let i = index;let f=first;let l = last">`);
+        tpl.push(`<tr class="row-editor" *ngFor="let row of viewList;${this.options.trackBy ? 'trackBy:trackByResolver();' : ''}let i = index;let f=first;let l = last">`);
         this.options.columnDefs.forEach((item, index) => {
-            tpl.push(`<td><input type="text" [(ngModel)]="row.${item.field}"></td>`);
+            this.getCell(item, `config.columnDefs[${index}]`, tpl);
         });
         tpl.push('</tr>');
         return tpl.join('');
+    }
+    private getCell(item, config: string, tpl: any[]) {
+        //this.options._events[item.field] = { hideMsg: item.validators ? false : true, type: item.type || 'text', field: item };
+
+        switch (item.type) {
+            case 'juSelect':
+                tpl.push(`<td>
+                <juSelect
+                    [myForm]="myForm"
+                    [config]="${config}"                   
+                    [data-src]="${config}.data">
+                </juSelect>
+                `);
+                break;
+            case 'select':
+
+                break;
+            case 'html':
+
+                break;
+            case 'ckeditor':
+
+                break;
+            case 'datepicker':
+
+                break;
+            case 'detail':
+
+                break;
+            case 'file':
+
+                break;
+            case 'groupLayout':
+
+                break;
+            default:
+                tpl.push(`<td><input type="text" [(ngModel)]="row.${item.field}"></td>`);
+                break;
+        }
     }
     private getPlainView() {
         let tpl: any[] = [];
@@ -477,9 +517,9 @@ export class juGrid implements OnInit, OnChanges, OnDestroy {
 
 function getComponent(obj: any) {
     @Component({
-        selector: 'div',
+        selector: 'dycom',
         template: obj.tpl,
-        directives: [juPager, juForm],
+        directives: [juPager, juForm, rowEditor, juSelect],
         encapsulation: ViewEncapsulation.None
     })
     class DynamicComponent {
@@ -492,6 +532,7 @@ function getComponent(obj: any) {
         constructor(private renderer: Renderer) {
 
         }
+        @ContentChildren(rowEditor) editors: QueryList<rowEditor>;
         @ViewChild('filterWindow') filterWindowRef: ElementRef;
         ngOnInit() {
 
@@ -500,6 +541,11 @@ function getComponent(obj: any) {
             this.config.columnDefs
                 .filter(it => it.filterApi)
                 .forEach(it => { it.filterApi.destroy(); });
+        }       
+
+        ngAfterContentInit() {
+            // do something with list items
+            console.log('editors:',this.editors);
         }
         trackByResolver() {
             return (index, obj) => obj[this.config.trackBy];

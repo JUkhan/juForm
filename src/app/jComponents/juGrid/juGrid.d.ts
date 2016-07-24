@@ -2,6 +2,7 @@ import {juGrid} from './juGrid';
 import {juForm, FormOptions} from '../juForm';
 import {Observable} from 'rxjs/Observable';
 export interface ColumnDefs{
+     type?:'select'|'html'|'juSelect'|string;
     width?:number;
     headerName?:string;
     field?:string;
