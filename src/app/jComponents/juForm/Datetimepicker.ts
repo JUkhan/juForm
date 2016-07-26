@@ -19,18 +19,20 @@ export class Datetimepicker implements OnInit, OnDestroy {
         switch (this.pickerName) {
             case 'datepicker':
                 this.pickerObject = jQuery(this.el.nativeElement).datepicker(this.pickers);
-                this.pickerObject.on('changeDate', (e) => {                                 
+                this.pickerObject.on('changeDate', (e) => {
                     if (this.property.indexOf('.') !== -1) {
-                        let arr =this.property.split('.'), len = arr.length-1, obj = this.model;
-                        for (var i = 0; i < len; i++) {                            
-                            obj = obj[arr[i]];                          
+                        let arr = this.property.split('.'), len = arr.length - 1, obj = this.model;
+                        for (var i = 0; i < len; i++) {
+                            obj = obj[arr[i]];
                         }
-                        obj[arr[i]] =  e.format();
+                        obj[arr[i]] = e.format();
                     } else {
                         this.model[this.property] = e.format();
                     }
-                    this.form.dynamicComponent.instance
-                        .vlidate_input(e.format(), this.config);
+                    if (this.form) {
+                        this.form.dynamicComponent.instance
+                            .vlidate_input(e.format(), this.config);
+                    }
                 });
                 break;
             case 'timepicker':

@@ -1,7 +1,7 @@
-import {Component, OnInit, OnChanges, ChangeDetectionStrategy, ContentChildren, QueryList,
-    OnDestroy, ViewContainerRef, Input, Output, EventEmitter, Renderer, ViewChild, 
+import {Component, OnInit, OnChanges, ChangeDetectionStrategy, ContentChildren, QueryList, ResolvedReflectiveBinding,
+    OnDestroy, ViewContainerRef, Input, Output, EventEmitter, Renderer, ViewChild,ViewChildren,
     ComponentRef, ElementRef, DynamicComponentLoader, ViewEncapsulation} from '@angular/core';
-import {juForm, juSelect} from '../juForm';
+import {juForm, juSelect, Datetimepicker} from '../juForm';
 import {juPager} from '../juPager';
 import {TextFilter} from './TextFilter';
 import {NumberFilter} from './NumberFilter';
@@ -13,7 +13,7 @@ declare var jQuery: any;
 @Component({
     selector: '.juGrid, [juGrid]',
     templateUrl: './juGrid.html',
-    styleUrls: ['./juGrid.css'],
+    styleUrls: ['./juGrid.css'],   
     directives: [juForm],
     encapsulation: ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.Default
@@ -31,7 +31,7 @@ export class juGrid implements OnInit, OnChanges, OnDestroy {
     constructor(
         private _elementRef: ElementRef,
         private loader: DynamicComponentLoader,
-        //private cd: ChangeDetectorRef,      
+        //private cd: ChangeDetectorRef,       
         private viewContainerRef: ViewContainerRef
     ) { }
     ngOnChanges(changes) {
@@ -157,7 +157,6 @@ export class juGrid implements OnInit, OnChanges, OnDestroy {
         this.options.api = { grid: this, form: null };
     }
     private loadComponent() {
-
         this.loader.loadNextToLocation(getComponent(this.getDynamicConfig()), this.viewContainerRef)
             .then(com => {
                 this.dynamicComponent = com;
@@ -176,6 +175,10 @@ export class juGrid implements OnInit, OnChanges, OnDestroy {
         if (this.dynamicComponent) {
             this.dynamicComponent.destroy();
         }
+    }
+    
+    getUpdatedRecords() {
+        return this.dynamicComponent.instance.editors.toArray().filter(_=>_.isUpdated).map(_=>_.model);
     }
     private getDynamicConfig() {
         var tpl: any[] = [];
@@ -202,93 +205,124 @@ export class juGrid implements OnInit, OnChanges, OnDestroy {
         tpl.push(this.getHeader(this.options.columnDefs));
         tpl.push('</thead>');
         tpl.push('<tbody (click)="hideFilterWindow()">');
-        tpl.push(this.options.enableCellEditing ? this.getCellEditing() : this.options.enableTreeView ? this.getTreeView() : this.getPlainView());
+        tpl.push(this.options.enableCellEditing ? this.getCellEditingView() : this.options.enableTreeView ? this.getTreeView() : this.getPlainView());
         tpl.push('</tbody>');
         tpl.push('</table>');
         tpl.push(`<div class="juPager" [linkPages]="config.linkPages" [pageSize]="config.pageSize" [data]="data" (onInit)="pagerInit($event)" (pageChange)="onPageChange($event)"></div>`);
     }
-    private getCellEditing() {
+    private getCellEditingView() {
         let tpl: any[] = [];
-        tpl.push(`<tr class="row-editor" *ngFor="let row of viewList;${this.options.trackBy ? 'trackBy:trackByResolver();' : ''}let i = index;let f=first;let l = last">`);
+        tpl.push(`<tr [ngClass]="config.trClass(row, i, f, l)" [model]="row" class="row-editor" *ngFor="let row of viewList;${this.options.trackBy ? 'trackBy:trackByResolver();' : ''}let i = index;let f=first;let l = last">`);
         this.options.columnDefs.forEach((item, index) => {
-            this.getCell(item, `config.columnDefs[${index}]`, tpl);
+            this.getCell(item, `config.columnDefs[${index}]`, tpl, index);
         });
         tpl.push('</tr>');
         return tpl.join('');
     }
-    private getCell(item, config: string, tpl: any[]) {
+    private getDataExpression(item:any, config:string){
+        if(Array.isArray(item.dataSrc)){
+            return `${config}.dataSrc`;
+        }
+        return `${config}.dataSrc() | async`
+    }
+    private getCell(item, config: string, tpl: any[], index: number) {
         //this.options._events[item.field] = { hideMsg: item.validators ? false : true, type: item.type || 'text', field: item };
-
-        switch (item.type) {
-            case 'juSelect':
-                tpl.push(`<td>
-                <juSelect
-                    [myForm]="myForm"
-                    [config]="${config}"                   
-                    [data-src]="${config}.data">
-                </juSelect>
+        var style='',change='';
+        if (item.type) {
+            switch (item.type) {
+                case 'juSelect':
+                 change=item.change?` (option-change)="${config}.change($event)"`:'';
+                 console.log(change);
+                    tpl.push(`<td>
+                    <juSelect 
+                        ${change} 
+                        [config]="${config}" 
+                        [disabled]="${config}.disabled"
+                        [hide-search]="${item.search ? 'false' : 'true'}"
+                        method="${item.method || 'getValues'}"
+                        [model]="row"                        
+                        property-name="${item.field}"
+                        view-mode="${item.viewMode || 'select'}"
+                        [data-src]="${this.getDataExpression(item, config)}"
+                    >
+                    </juSelect>
+                </td>
                 `);
-                break;
-            case 'select':
-
-                break;
-            case 'html':
-
-                break;
-            case 'ckeditor':
-
-                break;
-            case 'datepicker':
-
-                break;
-            case 'detail':
-
-                break;
-            case 'file':
-
-                break;
-            case 'groupLayout':
-
-                break;
-            default:
-                tpl.push(`<td><input type="text" [(ngModel)]="row.${item.field}"></td>`);
-                break;
+                    break;
+                case 'select':
+                    change=item.change?`(change)="${config}.change(row)"`:'';
+                    style=item.width?`style="width:${item.width}px"`:'';                   
+                    tpl.push(`<td><select ${style} ${change} class="select form-control" [(ngModel)]="row.${item.field}" >
+                            <option value="">{{${config}.emptyOptionText||'Select option'}}</option>
+                            <option *ngFor="let v of ${this.getDataExpression(item, config)}" [value]="v.value">{{v.name}}</option>
+                        </select></td>`);
+                    break;
+                case 'html':
+                    tpl.push(`<td>${item.content}</td>`);
+                    break;                
+                case 'datepicker':
+                    tpl.push(`<td>
+                    <div class="input-group date" [pickers]="${config}.config" picker-name="${item.type}" [model]="row" property="${item.field}" [config]="${config}" [form]="myForm" >
+                        <input type="text" [disabled]="${config}.disabled" [(ngModel)]="row.${item.field}" class="form-control" placeholder="Enter ${item.headerName}">
+                        <span class="input-group-addon">
+                            <span class="fa fa-calendar"></span>
+                        </span>
+                    </div> 
+                    </td>`);
+                    break;
+                
+                case 'text':
+                case 'number':
+                  style=item.width?`style="width:${item.width}px"`:''; 
+                    tpl.push(`<td><input ${style} class="text form-control" type="${item.type}" [(ngModel)]="row.${item.field}" placeholder="Enter ${item.headerName}"></td>`);
+                    break;
+                default:
+                    tpl.push(this.getNormalTD(item, index));
+                    break;
+            }
+        } else {
+            tpl.push(this.getNormalTD(item, index));
         }
     }
     private getPlainView() {
         let tpl: any[] = [];
         tpl.push(`<tr [ngClass]="config.trClass(row, i, f, l)" *ngFor="let row of viewList;${this.options.trackBy ? 'trackBy:trackByResolver();' : ''}let i = index;let f=first;let l = last">`);
         this.options.columnDefs.forEach((item, index) => {
-            tpl.push('<td ');
-            if (item.tdClass) {
-                tpl.push(`[ngClass]="config.columnDefs[${index}].tdClass(row, i, f, l)"`);
-            }
-            if (item.action) {
-                tpl.push('>');
-                item.action.forEach((ac, aci) => {
-                    if (item.headerName === 'crud') {
-                        if (ac.enable == true) {
-                            tpl.push(`<a href="javascript:;" title="${ac.title}" (click)="config.columnDefs[${index}].action[${aci}].click(row)"><b class="${ac.icon}"></b></a> `);
-                        }
-                    }
-                    else {
-                        tpl.push(`<a href="javascript:;" title="${ac.title}" (click)="config.columnDefs[${index}].action[${aci}].click(row)"><b class="${ac.icon}"></b></a> `);
-                    }
-
-                });
-
-            }
-            else if (item.cellRenderer) {
-                tpl.push(` [innerHTML]="config.columnDefs[${index}].cellRenderer(row,i,f, l)">`);
-            }
-            else if (item.field) {
-                tpl.push(`>{{row.${item.field}}}`);
-            } else {
-                tpl.push(`>`);
-            }
-            tpl.push('</td>');
+            tpl.push(this.getNormalTD(item, index));
         });
         tpl.push('</tr>');
+        return tpl.join('');
+    }
+    private getNormalTD(item: any, index: number) {
+        let tpl: any[] = [];
+        tpl.push('<td ');
+        if (item.tdClass) {
+            tpl.push(`[ngClass]="config.columnDefs[${index}].tdClass(row, i, f, l)"`);
+        }
+        if (item.action) {
+            tpl.push('>');
+            item.action.forEach((ac, aci) => {
+                if (item.headerName === 'crud') {
+                    if (ac.enable == true) {
+                        tpl.push(`<a href="javascript:;" title="${ac.title}" (click)="config.columnDefs[${index}].action[${aci}].click(row)"><b class="${ac.icon}"></b></a> `);
+                    }
+                }
+                else {
+                    tpl.push(`<a href="javascript:;" title="${ac.title}" (click)="config.columnDefs[${index}].action[${aci}].click(row)"><b class="${ac.icon}"></b></a> `);
+                }
+
+            });
+
+        }
+        else if (item.cellRenderer) {
+            tpl.push(` [innerHTML]="config.columnDefs[${index}].cellRenderer(row,i,f, l)">`);
+        }
+        else if (item.field) {
+            tpl.push(`>{{row.${item.field}}}`);
+        } else {
+            tpl.push(`>`);
+        }
+        tpl.push('</td>');
         return tpl.join('');
     }
     private getParams(row: string, level: number) {
@@ -519,20 +553,21 @@ function getComponent(obj: any) {
     @Component({
         selector: 'dycom',
         template: obj.tpl,
-        directives: [juPager, juForm, rowEditor, juSelect],
+        directives: [juPager, juForm, rowEditor, juSelect, Datetimepicker],
         encapsulation: ViewEncapsulation.None
     })
-    class DynamicComponent {
+    class TableComponent {
         data: any[] = [];
         config: any = {};
         formObj: juForm;
         viewList: any[] = [];
         _copyOfData: any;
         private pager: juPager;
+
         constructor(private renderer: Renderer) {
 
         }
-        @ContentChildren(rowEditor) editors: QueryList<rowEditor>;
+        @ViewChildren(rowEditor) editors: QueryList<rowEditor>;
         @ViewChild('filterWindow') filterWindowRef: ElementRef;
         ngOnInit() {
 
@@ -541,22 +576,19 @@ function getComponent(obj: any) {
             this.config.columnDefs
                 .filter(it => it.filterApi)
                 .forEach(it => { it.filterApi.destroy(); });
-        }       
-
-        ngAfterContentInit() {
-            // do something with list items
-            console.log('editors:',this.editors);
         }
         trackByResolver() {
             return (index, obj) => obj[this.config.trackBy];
         }
         pagerInit(pager: juPager) {
-            this.pager = pager;
+            this.pager = pager;            
             this.config.api.pager = pager;
+            console.log(this.config);
             this.pager.sspFn = this.config.sspFn;
             if (this.pager.sspFn) {
                 this.pager.firePageChange();
             }
+
         }
 
         onFormLoad(form: juForm) {
@@ -569,7 +601,6 @@ function getComponent(obj: any) {
         setData(data) {
             this.data = data;
             this._copyOfData = [...data];
-            this.notifyFilter();
         }
         onPageChange(list) {
             async_call(() => { this.viewList = list; });
@@ -723,7 +754,7 @@ function getComponent(obj: any) {
             }
         }
     }
-    return DynamicComponent;
+    return TableComponent;
 }
 function async_call(fx: Function, time = 0) {
     let tid = setTimeout(() => {

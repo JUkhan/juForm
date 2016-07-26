@@ -3,9 +3,9 @@ import { uiService } from '../uiService';
 import {Subject} from 'rxjs';
 declare var jQuery: any;
 @Component({
-    selector: 'juSelect', 
-    templateUrl:'./juSelect.html',
-    styleUrls:['./juSelect.css'] ,
+    selector: 'juSelect',
+    templateUrl: './juSelect.html',
+    styleUrls: ['./juSelect.css'],
     encapsulation: ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.Default
 })
@@ -19,20 +19,21 @@ export class juSelect implements OnInit, OnChanges {
     @Input() disabled: boolean = false;
     @Input() config: any = {};
     @Input('myForm') myForm: any;
-    valueChanges:Subject<any>;
+    notifyRowEditor = new Subject();
+    valueChanges: Subject<any>;
 
-    @Output('option-change') onChange = new EventEmitter();    
-    spliter:string='$#$';
-    searchForm: any;    
+    @Output('option-change') onChange = new EventEmitter();
+    spliter: string = '$#$';
+    searchForm: any;
     searchData: any;
     visible: boolean = false;
     selectedText: string;
     isAllSelected: boolean = false;
     _dataSrc: any;
     optionsDom: any;
-    domClickSubscription: any;      
-    constructor( private el: ElementRef, private uiService: uiService) {        
-        this.valueChanges=new Subject();       
+    domClickSubscription: any;
+    constructor(private el: ElementRef, private uiService: uiService) {
+        this.valueChanges = new Subject();
     }
     ngOnChanges(changes) {
 
@@ -56,17 +57,17 @@ export class juSelect implements OnInit, OnChanges {
     @Input('data-src')
     set dataSrc(val: Array<any>) {
         if (!val) { return; }
-        let temp = val.map(item => Object.assign({}, item,{selected:false}));
+        let temp = val.map(item => Object.assign({}, item, { selected: false }));
         this.searchData = temp;
         this._dataSrc = temp;
 
         let _val = this._getValueByPropertyName();
         if (this.config.isFilter) {
             if (_val) {
-                async_call(() => { this.value = _val;});
+                async_call(() => { this.value = _val; });
             } else if (val && val.length > 0) {
                 this._setValueByPropertyName(val[0].value);
-               async_call(() => { this.value = _val; });
+                async_call(() => { this.value = _val; });
             }
         } else {
             if (_val) {
@@ -75,7 +76,7 @@ export class juSelect implements OnInit, OnChanges {
         }
     }
     get dataSrc() {
-        return this._dataSrc||[];
+        return this._dataSrc || [];
     }
     _getValueByPropertyName() {
         let props: Array<string> = this.propertyName.split('.');
@@ -102,7 +103,7 @@ export class juSelect implements OnInit, OnChanges {
     checkCssClass() {
         return this.viewMode === 'checkbox' ? false : this.hideSearch;
     }
-    ngOnInit() {                
+    ngOnInit() {
         this.config.api = this;
         this.viewMode = this.viewMode.toLocaleLowerCase();
         if (this.viewMode === 'select' || this.viewMode === 'radio') {
@@ -151,14 +152,14 @@ export class juSelect implements OnInit, OnChanges {
             this.domClickSubscription.unsubscribe();
         }
     }
-    
+
     removeOption(option: any) {
         this.dataSrc.splice(this.dataSrc.indexOf(option), 1);
     }
     selectOption(option: any) {
         if (this.viewMode === 'select' || this.viewMode === 'radio') {
             this.dataSrc.forEach(op => op.selected = (op === option));
-            async_call(() => { this.visible = !this.visible; this.animate();}, 100);
+            async_call(() => { this.visible = !this.visible; this.animate(); }, 100);
             this.selectedText = option.name;
         }
         else if (this.viewMode === 'checkbox') {
@@ -176,7 +177,7 @@ export class juSelect implements OnInit, OnChanges {
             }
         }
         this._setModelValue();
-
+        this.notifyRowEditor.next({});
     }
     search(val: string) {
         if (val) { val = val.toLowerCase(); }
@@ -190,7 +191,7 @@ export class juSelect implements OnInit, OnChanges {
     }
     selectItem(value_or_name: any) {
         if (!value_or_name) return;
-        this.checkAll(false, false);                
+        this.checkAll(false, false);
         let valueSelected = false;
         if (this.searchData) {
             this.searchData.forEach((v: any) => {
@@ -208,11 +209,12 @@ export class juSelect implements OnInit, OnChanges {
             this._setValueByPropertyName(this.value);
             this.onChange.next({ value: this.value, sender: this, form: this.myForm });
             this.valueChanges.next({ value: this.value, sender: this, form: this.myForm });
+
         }
     }
     selectItems(values_or_names: any) {
         if (!values_or_names) return;
-        this.checkAll(false, false);                
+        this.checkAll(false, false);
         var spliter = this.spliter, len = 0;
         if (Array.isArray(values_or_names)) {
             len = values_or_names.length;
@@ -239,6 +241,7 @@ export class juSelect implements OnInit, OnChanges {
             this._setValueByPropertyName(this.value);
             this.onChange.next({ value: this.value, sender: this, form: this.myForm });
             this.valueChanges.next({ value: this.value, sender: this, form: this.myForm });
+
         }
     }
     getNames(): any {
@@ -280,7 +283,7 @@ export class juSelect implements OnInit, OnChanges {
     }
     checkAll(isChecked: boolean, isModelUpdate: boolean = true) {
         this.dataSrc.forEach(v => v.selected = isChecked);
-        this.isAllSelected=isChecked;
+        this.isAllSelected = isChecked;
         if (isChecked) {
             if (this.dataSrc.length === this.searchData.length) {
                 this.selectedText = 'All items selected(' + this.dataSrc.length + ')';
@@ -289,7 +292,7 @@ export class juSelect implements OnInit, OnChanges {
                 this.selectedText = this.searchData.length + (this.searchData.length > 1 ? ' items' : ' item') + ' selected';
             }
         } else {
-            this.selectedText = this.viewMode === 'checkbox' ? 'Select options' : 'Select option';            
+            this.selectedText = this.viewMode === 'checkbox' ? 'Select options' : 'Select option';
         }
         if (isModelUpdate) {
             this._setModelValue();
@@ -304,16 +307,19 @@ export class juSelect implements OnInit, OnChanges {
         if (this.model && this.propertyName && this.method) {
             this._setValueByPropertyName(this.method === 'getValues' ? this.getValues() : this.getNames());
             this.onChange.next({ value: this._getValueByPropertyName(), sender: this, form: this.myForm });
-            this.valueChanges.next({ value: this._getValueByPropertyName(), sender: this, form: this.myForm });    
+            this.valueChanges.next({ value: this._getValueByPropertyName(), sender: this, form: this.myForm });
+
         }
     }
-    hasError() {      
+    hasError() {
         let vals = this.getValues(), res;
         if (Array.isArray(vals)) {
             vals = vals.join(this.spliter);
-        }        
-        this.myForm.dynamicComponent.instance
-        .vlidate_input(vals, this.config,!this.focusToValidate);       
+        }
+        if (this.myForm) {
+            this.myForm.dynamicComponent.instance
+                .vlidate_input(vals, this.config, !this.focusToValidate);
+        }
         return !this.config.hideMsg;
     }
 

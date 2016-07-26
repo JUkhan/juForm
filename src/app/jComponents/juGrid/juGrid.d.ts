@@ -1,8 +1,9 @@
 import {juGrid} from './juGrid';
+import {juPager} from '../juPager';
 import {juForm, FormOptions} from '../juForm';
 import {Observable} from 'rxjs/Observable';
 export interface ColumnDefs{
-     type?:'select'|'html'|'juSelect'|string;
+    type?:'select'|'html'|'juSelect'|'datepicker'|string;
     width?:number;
     headerName?:string;
     field?:string;
@@ -14,6 +15,11 @@ export interface ColumnDefs{
     comparator?:(a:any, b:any)=>boolean;
     filter?:'set'|'text'|'number'|BaseFilter;
     params?:{cellRenderer?:(row:any, index?:number)=>any, apply?:boolean, valueGetter?:(row:any)=>any,value?:string[]};
+    dataSrc?:any[]|any;
+    change?:(row:any)=>void;
+    content?:string;
+    viewMode?:'select'|'checkbox'|'radio';
+    
 }
 export interface GridOptions{
     classNames?:string;
@@ -31,7 +37,7 @@ export interface GridOptions{
     formDefs?:FormOptions;
     columnDefs?:ColumnDefs[];
     removeItem?: (data:any) =>void;
-    api?:{form:juForm, grid:juGrid};
+    api?:{form:juForm, grid:juGrid, pager:juPager};
     sspFn?:(params:{pageSize:number,pageNo:number, searchText:string})=>Observable<{totalPage:number, data:any[]}>;
     onFormLoad?: (form: juForm) =>void;
     trackBy?:string; 

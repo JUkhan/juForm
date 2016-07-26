@@ -25,7 +25,7 @@ export class AppComponent {
     this.menuData=[
       {name:'Home', link:'/', icon: 'fa fa-home'},
       {name:'Settings', icon: 'fa fa-gear',items:[
-         {name:'Setting1', link:'/set1', icon: 'fa fa-home'},
+         {name:'Upload', link:'/upload', icon: 'fa fa-home'},
          {name:'Grid', link:'/grid', icon: 'fa fa-home'},
       ]},
       {name:'About', link:'/about', icon: 'fa fa-male'},

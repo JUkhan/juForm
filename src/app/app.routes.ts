@@ -11,6 +11,10 @@ export const routes: Routes = [
     loadComponent:()=>require('./settings').gridExample,
   },
   {
+    path: '/upload',
+    loadComponent:()=>require('./settings').UploadComponent,
+  },
+  {
     path: '/about',
     loadComponent:()=>require('./about').AboutComponent
   }
