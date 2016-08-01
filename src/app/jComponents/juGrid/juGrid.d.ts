@@ -13,12 +13,14 @@ export interface ColumnDefs{
     children?:ColumnDefs[];
     sort?:boolean;
     comparator?:(a:any, b:any)=>boolean;
-    filter?:'set'|'text'|'number'|BaseFilter;
+    filter?:'set'|'text'|'number'|any;
     params?:{cellRenderer?:(row:any, index?:number)=>any, apply?:boolean, valueGetter?:(row:any)=>any,value?:string[]};
     dataSrc?:any[]|any;
     change?:(row:any)=>void;
     content?:string;
     viewMode?:'select'|'checkbox'|'radio';
+    validators?:Function|Array<Function>;
+    search?:boolean;
     
 }
 export interface GridOptions{
@@ -38,7 +40,7 @@ export interface GridOptions{
     columnDefs?:ColumnDefs[];
     removeItem?: (data:any) =>void;
     api?:{form:juForm, grid:juGrid, pager:juPager};
-    sspFn?:(params:{pageSize:number,pageNo:number, searchText:string})=>Observable<{totalPage:number, data:any[]}>;
+    sspFn?:(params:{pageSize:number,pageNo:number, searchText:string, sort:string, filter:any[]})=>Observable<{totalPage:number, data:any[]}>;
     onFormLoad?: (form: juForm) =>void;
     trackBy?:string; 
     enableTreeView?:boolean; 
@@ -52,5 +54,7 @@ export interface BaseFilter {
     isFilterActive:()=>boolean;
     doesFilterPass:(item:any)=>boolean;
     destroy:()=>void;
+    searchText:string;
+    searchCategory:string;
 }
  

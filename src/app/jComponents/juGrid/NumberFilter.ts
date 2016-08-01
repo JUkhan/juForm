@@ -4,9 +4,9 @@ export class NumberFilter implements BaseFilter {
     private _isActive: boolean = false;
     private _gui: HTMLElement;
     private _isApply: boolean = false;
-    public searchCategory: string = '=';
-    public searchText: string = '';
-
+    
+    searchCategory: string = '=';
+    searchText: string = '';
     init(params: any) {
         this.setupGui(params);
     }

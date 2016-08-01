@@ -78,3 +78,17 @@
 .level-10{
     padding-left:208px !important;
 }
+
+.row-editor .form-control{
+    display: inline-block !important;
+}
+.row-editor .validation{
+ color: red;
+ cursor:pointer;
+}
+.row-editor .validation-msg-show{
+    visibility: visible; display:inline-block;
+}
+.row-editor .validation-msg-hide{
+    visibility: hidden;display:none;
+}

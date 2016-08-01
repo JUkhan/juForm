@@ -6,6 +6,10 @@ export class SetFilter implements BaseFilter {
     private _gui: HTMLElement;    
     private _col: any;
     public data: any[];
+    searchCategory: string = '';
+    get searchText(){
+        return this.selectedItems.join('$$$');
+    }
     init(params: any) {
         this._col = params;
         this.setupGui();

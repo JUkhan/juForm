@@ -4,9 +4,9 @@ export class TextFilter implements BaseFilter {
     private _isActive: boolean = false;
     private _gui: HTMLElement;
     private _isApply: boolean = false;
-    public searchCategory: string = 'Contains';
-    public searchText: string = '';
-
+    
+    searchCategory: string = 'Contains';
+    searchText: string = '';
     init(params: any) {
         this.setupGui(params);
     }

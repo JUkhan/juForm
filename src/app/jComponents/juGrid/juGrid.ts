@@ -1,5 +1,5 @@
 import {Component, OnInit, OnChanges, ChangeDetectionStrategy, ContentChildren, QueryList, ResolvedReflectiveBinding,
-    OnDestroy, ViewContainerRef, Input, Output, EventEmitter, Renderer, ViewChild,ViewChildren,
+    OnDestroy, ViewContainerRef, Input, Output, EventEmitter, Renderer, ViewChild, ViewChildren,
     ComponentRef, ElementRef, DynamicComponentLoader, ViewEncapsulation} from '@angular/core';
 import {juForm, juSelect, Datetimepicker} from '../juForm';
 import {juPager} from '../juPager';
@@ -13,7 +13,7 @@ declare var jQuery: any;
 @Component({
     selector: '.juGrid, [juGrid]',
     templateUrl: './juGrid.html',
-    styleUrls: ['./juGrid.css'],   
+    styleUrls: ['./juGrid.css'],
     directives: [juForm],
     encapsulation: ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.Default
@@ -176,9 +176,9 @@ export class juGrid implements OnInit, OnChanges, OnDestroy {
             this.dynamicComponent.destroy();
         }
     }
-    
+
     getUpdatedRecords() {
-        return this.dynamicComponent.instance.editors.toArray().filter(_=>_.isUpdated).map(_=>_.model);
+        return this.dynamicComponent.instance.editors.toArray().filter(_ => _.isUpdated).map(_ => _.model);
     }
     private getDynamicConfig() {
         var tpl: any[] = [];
@@ -212,27 +212,28 @@ export class juGrid implements OnInit, OnChanges, OnDestroy {
     }
     private getCellEditingView() {
         let tpl: any[] = [];
-        tpl.push(`<tr [ngClass]="config.trClass(row, i, f, l)" [model]="row" class="row-editor" *ngFor="let row of viewList;${this.options.trackBy ? 'trackBy:trackByResolver();' : ''}let i = index;let f=first;let l = last">`);
+        tpl.push(`<tr [ngClass]="config.trClass(row, i, f, l)" [model]="row" [config]="config" class="row-editor" *ngFor="let row of viewList;${this.options.trackBy ? 'trackBy:trackByResolver();' : ''}let i = index;let f=first;let l = last">`);
         this.options.columnDefs.forEach((item, index) => {
             this.getCell(item, `config.columnDefs[${index}]`, tpl, index);
         });
         tpl.push('</tr>');
         return tpl.join('');
     }
-    private getDataExpression(item:any, config:string){
-        if(Array.isArray(item.dataSrc)){
+    private getDataExpression(item: any, config: string) {
+        if (Array.isArray(item.dataSrc)) {
             return `${config}.dataSrc`;
         }
         return `${config}.dataSrc() | async`
     }
-    private getCell(item, config: string, tpl: any[], index: number) {
-        //this.options._events[item.field] = { hideMsg: item.validators ? false : true, type: item.type || 'text', field: item };
-        var style='',change='';
+    private getCell(item, config: string, tpl: any[], index: number) {        
+        var style = '', change = '', validation = '';
         if (item.type) {
+            if (item.validators) {
+                validation = ` <i [ngClass]="isValid('${item.field}', i)" class="validation fa fa-info-circle" [title]="getValidationMsg('${item.field}', i)"></i>`;
+            }
             switch (item.type) {
                 case 'juSelect':
-                 change=item.change?` (option-change)="${config}.change($event)"`:'';
-                 console.log(change);
+                    change = item.change ? ` (option-change)="${config}.change($event)"` : '';
                     tpl.push(`<td>
                     <juSelect 
                         ${change} 
@@ -245,21 +246,23 @@ export class juGrid implements OnInit, OnChanges, OnDestroy {
                         view-mode="${item.viewMode || 'select'}"
                         [data-src]="${this.getDataExpression(item, config)}"
                     >
-                    </juSelect>
-                </td>
-                `);
+                    </juSelect>`);
+                    tpl.push(validation);
+                    tpl.push('</td>');
                     break;
                 case 'select':
-                    change=item.change?`(change)="${config}.change(row)"`:'';
-                    style=item.width?`style="width:${item.width}px"`:'';                   
+                    change = item.change ? `(change)="${config}.change(row, i)"` : '';
+                    style = item.width ? `style="width:${item.width}px"` : '';
                     tpl.push(`<td><select ${style} ${change} class="select form-control" [(ngModel)]="row.${item.field}" >
                             <option value="">{{${config}.emptyOptionText||'Select option'}}</option>
                             <option *ngFor="let v of ${this.getDataExpression(item, config)}" [value]="v.value">{{v.name}}</option>
-                        </select></td>`);
+                        </select>`);
+                    tpl.push(validation);
+                    tpl.push('</td>');
                     break;
                 case 'html':
                     tpl.push(`<td>${item.content}</td>`);
-                    break;                
+                    break;
                 case 'datepicker':
                     tpl.push(`<td>
                     <div class="input-group date" [pickers]="${config}.config" picker-name="${item.type}" [model]="row" property="${item.field}" [config]="${config}" [form]="myForm" >
@@ -267,14 +270,17 @@ export class juGrid implements OnInit, OnChanges, OnDestroy {
                         <span class="input-group-addon">
                             <span class="fa fa-calendar"></span>
                         </span>
-                    </div> 
-                    </td>`);
+                    </div>`);
+                    tpl.push(validation);
+                    tpl.push('</td>');
                     break;
-                
+
                 case 'text':
                 case 'number':
-                  style=item.width?`style="width:${item.width}px"`:''; 
-                    tpl.push(`<td><input ${style} class="text form-control" type="${item.type}" [(ngModel)]="row.${item.field}" placeholder="Enter ${item.headerName}"></td>`);
+                    style = item.width ? `style="width:${item.width}px"` : '';
+                    tpl.push(`<td><input ${style} class="text form-control" type="${item.type}" [(ngModel)]="row.${item.field}" placeholder="Enter ${item.headerName}">`);
+                    tpl.push(validation);
+                    tpl.push('</td>');
                     break;
                 default:
                     tpl.push(this.getNormalTD(item, index));
@@ -515,6 +521,9 @@ export class juGrid implements OnInit, OnChanges, OnDestroy {
         }
     }
     //end of calculte header
+    setDropdownData(key:string, value:any[]){
+         this.dynamicComponent.instance.setDropdownData(key, value);
+    }
     search(val: any) {
         if (this.options.sspFn) {
             this.options.api.pager.search(val);
@@ -569,9 +578,24 @@ function getComponent(obj: any) {
         }
         @ViewChildren(rowEditor) editors: QueryList<rowEditor>;
         @ViewChild('filterWindow') filterWindowRef: ElementRef;
+        isValid(fieldName, index) {
+            let arr = this.editors.toArray();
+            if (arr.length > 0) {
+                return arr[index].isValid(fieldName);
+            }
+            return {};
+        }
+        getValidationMsg(fieldName, index) {
+            let arr = this.editors.toArray();
+            if (arr.length > 0) {
+                return arr[index].getValidationMsg(fieldName);
+            }
+            return '';
+        }
         ngOnInit() {
 
         }
+
         ngOnDestroy() {
             this.config.columnDefs
                 .filter(it => it.filterApi)
@@ -581,25 +605,24 @@ function getComponent(obj: any) {
             return (index, obj) => obj[this.config.trackBy];
         }
         pagerInit(pager: juPager) {
-            this.pager = pager;            
+            this.pager = pager;
             this.config.api.pager = pager;
-            console.log(this.config);
             this.pager.sspFn = this.config.sspFn;
-            if (this.pager.sspFn) {
-                this.pager.firePageChange();
-            }
-
         }
 
         onFormLoad(form: juForm) {
-
             this.formObj = form;
             if (this.config.onFormLoad) {
                 this.config.onFormLoad(form);
             }
         }
+        setDropdownData(key:string, value:any[]){
+            let col=this.config.columnDefs.find(_=>_.field===key);
+            col.dataSrc=value;
+        }
         setData(data) {
             this.data = data;
+            this.notifyFilter();
             this._copyOfData = [...data];
         }
         onPageChange(list) {
@@ -627,15 +650,19 @@ function getComponent(obj: any) {
         }
         sort(colDef: any) {
             colDef.reverse = !(typeof colDef.reverse === 'undefined' ? true : colDef.reverse);
-            let reverse = !colDef.reverse ? 1 : -1, sortFn = typeof colDef.comparator === 'function' ?
-                (a: any, b: any) => reverse * colDef.comparator(a, b) :
-                function (a: any, b: any) { return a = a[colDef.field], b = b[colDef.field], reverse * (<any>(a > b) - <any>(b > a)); };
-            this.data = [...this.data.sort(sortFn)];
             this.config.columnDefs.forEach(_ => {
                 if (_ !== colDef) {
                     _.reverse = undefined;
                 }
             });
+            if (this.config.sspFn) {
+                this.pager.sort(colDef.field, colDef.reverse);
+                return;
+            }
+            let reverse = !colDef.reverse ? 1 : -1, sortFn = typeof colDef.comparator === 'function' ?
+                (a: any, b: any) => reverse * colDef.comparator(a, b) :
+                function (a: any, b: any) { return a = a[colDef.field], b = b[colDef.field], reverse * (<any>(a > b) - <any>(b > a)); };
+            this.data = [...this.data.sort(sortFn)]; 
         }
         sortIcon(colDef: any) {
             let hidden = typeof colDef.reverse === 'undefined';
@@ -686,7 +713,7 @@ function getComponent(obj: any) {
                             colDef.filterApi = new SetFilter();
                             break;
                         default:
-                            colDef.filterApi = colDef.filter;
+                            colDef.filterApi = new colDef.filter();
                             break;
                     }
                     colDef.gridApi = this;
@@ -696,6 +723,7 @@ function getComponent(obj: any) {
                     colDef.filterApi.init(colDef);
 
                 }
+                
                 if (colDef.filter === 'set' && !colDef.params.value && colDef.dataUpdated) {
                     colDef.filterApi.data = this._copyOfData
                         .map(item => {
@@ -714,7 +742,7 @@ function getComponent(obj: any) {
                 if (it.filter) {
                     it.dataUpdated = true;
                 }
-            })
+            });
         }
         valueGetter(colDef: any) {
             try {
@@ -727,8 +755,13 @@ function getComponent(obj: any) {
             }
         }
         filterChangedCallback() {
-            let activeFilters = this.config.columnDefs.filter(it => it.filterApi && it.filterApi.isFilterActive());
-            let temp: any[] = [];
+            let activeFilters:any[] = this.config.columnDefs.filter(it => it.filterApi && it.filterApi.isFilterActive());
+            if(this.config.sspFn){               
+               let filter= activeFilters.map(_=>({field:_.field, searchCategory:_.filterApi.searchCategory, searchText:_.filterApi.searchText}));
+               this.pager.filter(filter);
+                return;
+            }
+            let temp: any[] = [];            
             this._copyOfData.forEach(row => {
                 let flag: any = true;
                 activeFilters.forEach((col: any, index: number) => {

@@ -17,14 +17,22 @@ export class juPager implements OnInit, OnChanges {
     totalPage: number = 0;
     activePage: number = 1;
     list: any[] = [];
-    searchText: any='';
+    searchText: any = '';
+    _sort: string = '';
+    _filter: any[] = [];
     private groupNumber: number = 1;
 
     constructor(private cd: ChangeDetectorRef) {
 
     }
-    set_sspFn(callback:Function){
-        this.sspFn=callback;
+    changePageSize(size){
+        this.pageSize=size;
+        this.groupNumber=1;
+        this.activePage=1;
+        this.firePageChange();
+    }
+    set_sspFn(callback: Function) {
+        this.sspFn = callback;
         this.firePageChange();
     }
     ngOnChanges(changes) {
@@ -37,7 +45,7 @@ export class juPager implements OnInit, OnChanges {
         this.linkPages = +this.linkPages;
         this.groupNumber = +this.groupNumber;
         this.onInit.next(this);
-        this.calculatePagelinkes();        
+        this.calculatePagelinkes();
     }
     ngOnDestroy() { }
 
@@ -74,6 +82,18 @@ export class juPager implements OnInit, OnChanges {
         }
 
     }
+    clickStart() {
+        if (this.groupNumber > 1) {
+            this.groupNumber = 1;
+            this.calculatePagelinkes();
+        }
+    }
+    clickEnd() {
+        if (this.hasNext()) {
+            this.groupNumber = parseInt((this.totalPage / this.linkPages).toString())+((this.totalPage % this.linkPages)?1:0);
+            this.calculatePagelinkes();
+        }
+    }
     clickPage(index: number) {
         this.activePage = index;
         this.firePageChange();
@@ -83,11 +103,22 @@ export class juPager implements OnInit, OnChanges {
         this.activePage = 1;
         this.firePageChange();
     }
+    sort(sortProp: string, isAsc) {
+        this._sort = sortProp + '_' + (isAsc ? 'desc' : 'asc');
+        this.firePageChange();
+    }
+    filter(filterArr: any[]) {
+        this._filter = filterArr;
+        this.groupNumber = 1;
+        this.activePage = 1;
+        this.firePageChange();
+        this.calculatePagelinkes();
+    }
     firePageChange(isFire: boolean = false) {
         if (this.sspFn) {
-            this.sspFn({ pageSize: this.pageSize, pageNo: this.activePage, searchText: this.searchText })
+            this.sspFn({ pageSize: this.pageSize, pageNo: this.activePage, searchText: this.searchText, sort: this._sort, filter: this._filter })
                 .subscribe(res => {
-                    this.totalPage =res.totalPage;
+                    this.totalPage = res.totalPage;
                     this.pageChange.next(res.data);
                     if (this.activePage == 1 || isFire) {
                         this.calculatePagelinkes(false);
@@ -136,7 +167,7 @@ export class juPager implements OnInit, OnChanges {
     }
     private getTotalPage() {
         if (this.sspFn) {
-              return this.totalPage;
+            return this.totalPage;
         }
         if (!this.data) return 0;
         let len = this.data.length;
