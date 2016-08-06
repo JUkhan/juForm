@@ -1,13 +1,34 @@
-import {Component, OnChanges, ElementRef, forwardRef, OnInit, Inject, ViewEncapsulation, Input, Output, EventEmitter, ChangeDetectionStrategy} from "@angular/core";
+import {Component,
+    OnChanges,
+    ElementRef,
+    forwardRef,
+    OnInit, Inject,
+    ViewEncapsulation,
+    Input, Output,
+    EventEmitter,
+    trigger,
+    state,
+    style,
+    transition,
+    animate,
+    ChangeDetectionStrategy} from "@angular/core";
 import { uiService } from '../uiService';
 import {Subject} from 'rxjs';
-declare var jQuery: any;
+
 @Component({
     selector: 'juSelect',
     templateUrl: './juSelect.html',
     styleUrls: ['./juSelect.css'],
     encapsulation: ViewEncapsulation.None,
-    changeDetection: ChangeDetectionStrategy.Default
+    changeDetection: ChangeDetectionStrategy.Default,
+    animations: [
+        trigger('slide', [
+            state('up', style({ opacity: 0, height: 0 })),
+            state('down', style({ opacity: 1, height: '*' })),
+            transition('up => down', [style({ height: 45 }), animate('200ms edge-in')]),
+            transition('down => up', animate('200ms edge-out'))
+        ])
+    ]
 })
 export class juSelect implements OnInit, OnChanges {
     @Input('view-mode') viewMode: string = 'select';
@@ -30,7 +51,7 @@ export class juSelect implements OnInit, OnChanges {
     selectedText: string;
     isAllSelected: boolean = false;
     _dataSrc: any;
-    optionsDom: any;
+    private slideState: string = 'up';
     domClickSubscription: any;
     constructor(private el: ElementRef, private uiService: uiService) {
         this.valueChanges = new Subject();
@@ -113,20 +134,21 @@ export class juSelect implements OnInit, OnChanges {
             this.selectedText = 'Select options';
         }
         this.api.api = this;
+
+        let selectDiv = this.el.nativeElement.querySelector('.ju-select'),
+            optionsDiv = this.el.nativeElement.querySelector('.options');
+       
         this.domClickSubscription = this.uiService.documentClick.subscribe((event: any) => {
             var target = event.target;
-            if (jQuery(target).parents('.ju-select').length) {
+            if (this.uiService.hasParent(target, selectDiv)) {
                 this.eventState.visible = this.visible;
                 this.eventState.isHeader = true;
             } else { this.eventState.isHeader = false; }
-            if (this.visible && !(jQuery(target).parents('.options').length)) {
+            if (this.visible && !(this.uiService.hasParent(target, optionsDiv))) {
                 this.visible = false; this.focusToValidate = true;
             }
             this.animate();
         });
-
-        this.optionsDom = jQuery(this.el.nativeElement).find('.options');
-        this.optionsDom.hide();
     }
     eventState: any = { visible: false, isHeader: false };
     focusToValidate: boolean = false;
@@ -145,7 +167,7 @@ export class juSelect implements OnInit, OnChanges {
         this.animate();
     }
     animate() {
-        this.visible ? this.optionsDom.slideDown() : this.optionsDom.slideUp();
+        this.slideState = this.visible ? 'down' : 'up';
     }
     ngOnDestroy() {
         if (!this.config.isFilter) {

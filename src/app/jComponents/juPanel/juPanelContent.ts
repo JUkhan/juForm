@@ -1,41 +1,53 @@
-import {Component, OnInit, OnDestroy, ElementRef, ViewEncapsulation} from '@angular/core';
+import {Component,
+    OnInit,
+    OnDestroy,
+    ElementRef,
+    ViewEncapsulation,
+    AfterContentInit,
+    trigger,
+    state,
+    style,
+    transition,
+    animate
+} from '@angular/core';
 import {juPanel} from './juPanel';
-declare var jQuery: any;
 
 @Component({
     selector: 'content, [content]',
     templateUrl: './juPanelContent.html',
     inputs: ['title', 'active'],
-    encapsulation: ViewEncapsulation.None
+    encapsulation: ViewEncapsulation.None,
+    animations:[
+        trigger('slide',[
+            state('up', style({opacity:0, height:0})),
+            state('down', style({opacity:1, height:'*'})),
+            transition('up => down', animate('300ms edge-in')),
+            transition('down => up', animate('300ms edge-out'))
+        ])
+    ]
 })
 
 export class juPanelContent implements OnInit, OnDestroy {
     title: string;
     private _active: boolean = false;
     private _clickOnToggle: boolean = false;
+    private slideState:string='';
     constructor(private panel: juPanel, public elementRef: ElementRef) {
         panel.insertContent(this);
     }
     ngOnInit() {
-        let tid = setTimeout(() => {
-            if (this.active == false && this.panel.viewMode==='accordion') {                              
-                jQuery(this.elementRef.nativeElement).find('.panel-body').slideUp();
-            }else if(this.active == false && this.panel.viewMode==='tab'){
-                jQuery(this.elementRef.nativeElement).find('.tab').slideUp();
-            }
-            clearTimeout(tid);
-        }, 0);
+       
+    }
+    ngAfterContentInit() {      
+        this.slideState=this.active?'down':'up';
     }
     ngOnDestroy() {
         this.panel.removeContent(this);
     }
     set active(val) {
         this._active = val;
-        if (!this._clickOnToggle) {
-            this._active ?
-                jQuery(this.elementRef.nativeElement).find(this.panel.viewMode==='tab'?'.tab':'.panel-body').slideDown()
-                :
-                jQuery(this.elementRef.nativeElement).find(this.panel.viewMode==='tab'?'.tab':'.panel-body').slideUp()
+        if (!this._clickOnToggle) {           
+            this.slideState=this.active?'down':'up';
         } else {
             this._clickOnToggle = false;
         }
@@ -46,6 +58,6 @@ export class juPanelContent implements OnInit, OnDestroy {
     slideToggle() {
         this._clickOnToggle = true;
         this.active = !this.active;
-        jQuery(this.elementRef.nativeElement).find('.panel-body').slideToggle();
+        this.slideState=this.active?'down':'up';
     }
 }
