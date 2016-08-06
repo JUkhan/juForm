@@ -72,8 +72,8 @@ export class ChildWindow implements OnInit, OnDestroy, AfterViewInit {
     public get width() { return this._width; }
     private addListeners() {
         let mousedown$ = Observable.fromEvent(this.header.nativeElement, 'mousedown'),
-            mousemove$ = Observable.fromEvent(this.header.nativeElement, 'mousemove'),
-            mouseup$ = Observable.fromEvent(this.header.nativeElement, 'mouseup');
+            mousemove$ = Observable.fromEvent(document, 'mousemove'),
+            mouseup$ = Observable.fromEvent(document, 'mouseup');
        this.subList.push(mousedown$.filter((e:any)=>e.target.className==='header' && this.isMax).flatMap((md: any) => {
             const startX = md.clientX + window.scrollX,
                 startY = md.clientY + window.scrollY,
@@ -87,7 +87,7 @@ export class ChildWindow implements OnInit, OnDestroy, AfterViewInit {
                         left: startLeft + mm.clientX - startX,
                         top: startTop + mm.clientY - startY
                     };
-                }).filter(e=>e.top>=0 && e.left>=0)
+                })
                 .takeUntil(mouseup$)
         }).subscribe((val: any) => {
             this.top = val.top;

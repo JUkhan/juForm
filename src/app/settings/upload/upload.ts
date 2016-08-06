@@ -45,7 +45,7 @@ export class UploadComponent implements OnInit {
             columnDefs: [               
                 { headerName: 'Name', field: 'name' },
                 { headerName: 'Education',  field: 'education',type:'select', dataSrc:this.service.getEducations2()},
-                { headerName: 'Age', field: 'age', type:'number', width:70},
+                { headerName: 'Age', field: 'age', type:'number', width:70, validators:FV.required},
                 { headerName: 'Address', field: 'address' },
                 { headerName: 'Description', field: 'description' }
             ]
