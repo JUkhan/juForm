@@ -3,18 +3,19 @@ import {ChildWindow} from './childWindow';
 import {WindowService} from './windowService';
 import {Subscription} from 'rxjs';
 @Component({
-    selector: 'pw',
+    selector: 'pw, .pw',
     templateUrl: './parentWindow.html',
-    styleUrls: ['./parentWindow.css'],
-    providers: [WindowService],
-    encapsulation: ViewEncapsulation.None
+    styleUrls: ['./parentWindow.css'],    
+    encapsulation: ViewEncapsulation.None,
+    inputs:['height']
 })
 
 export class ParentWindow implements OnInit, OnDestroy {
     private childList: any;
     private placeHolder: any;
-    private minList:any[]=[];
-    private subsList:Subscription[]=[];
+    private minList: any[] = [];
+    private subsList: Subscription[] = [];
+    private height:number=500;
     constructor(private renderer: Renderer,
         private dcl: DynamicComponentLoader,
         private injector: Injector,
@@ -23,42 +24,46 @@ export class ParentWindow implements OnInit, OnDestroy {
 
     @ViewChild('container') container: ElementRef;
     @ViewChild('footer') footer: ElementRef;
-    ngOnInit() {        
+    ngOnInit() {
         this.childList = this.service.getChildList();
-       this.subsList.push(this.service.$minWin.subscribe(next=>{
+        this.subsList.push(this.service.$minWin.subscribe(next => {
             this.minList.push(next);
         }));
-        
+        this.service.parentWindow=this;
     }
 
     ngOnDestroy() {
         this.service.destroyAll();
-        this.subsList.forEach(_=>{
-            if(!_.unsubscribe){
+        this.subsList.forEach(_ => {
+            if (!_.unsubscribe) {
                 _.unsubscribe();
             }
         });
     }
     ngAfterViewInit() {
-        this.service.pWin=this.container.nativeElement;
-        //console.log('window height:',window.innerHeight);
+        this.service.pWin = this.container.nativeElement;
+        this.container.nativeElement.style.height=this.height+'px';
     }
-    private expandWindow(item){
+    private openWindow(item) {
         this.minList.splice(this.minList.indexOf(item), 1);
-        this.service.expandWindow(item.id, false);
+        this.service.openWindow(item.id);
     }
-    private closeWindow(item){
+    private closeWindow(item) {
         this.minList.splice(this.minList.indexOf(item), 1);
         this.service.closeWindow(item.id);
     }
-    private showChild(id: string) {
+    public createWindow(id: string) {
         this.createPlaceHolder(id);
-        this.loadComponent(id);
     }
     private createPlaceHolder(id: string) {
         if (typeof this.childList[id] === 'undefined') {
-            this.placeHolder = this.renderer.createElement(this.container.nativeElement, 'div');           
+            this.placeHolder = this.renderer.createElement(this.container.nativeElement, 'div');
             this.childList[id] = {};
+            this.loadComponent(id);
+        } else {
+            let item = this.minList.filter(_ => _.id === id);
+            this.minList.splice(this.minList.indexOf(item), 1);
+            this.service.openWindow(id);
         }
     }
     private loadComponent(id: string) {

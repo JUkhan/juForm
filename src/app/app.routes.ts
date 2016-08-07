@@ -21,6 +21,6 @@ export const routes: Routes = [
   ,
   {
     path: '/window',    
-    loadComponent:()=>require('./jComponents').ParentWindow
+    loadComponent:()=>require('./window').Window
   }
 ];

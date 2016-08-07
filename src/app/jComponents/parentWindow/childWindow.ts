@@ -74,7 +74,7 @@ export class ChildWindow implements OnInit, OnDestroy, AfterViewInit {
         let mousedown$ = Observable.fromEvent(this.header.nativeElement, 'mousedown'),
             mousemove$ = Observable.fromEvent(document, 'mousemove'),
             mouseup$ = Observable.fromEvent(document, 'mouseup');
-       this.subList.push(mousedown$.filter((e:any)=>e.target.className==='header' && this.isMax).flatMap((md: any) => {
+       this.subList.push(mousedown$.filter((e:any)=>this.isMax).flatMap((md: any) => {
             const startX = md.clientX + window.scrollX,
                 startY = md.clientY + window.scrollY,
                 startLeft = +this.left,
@@ -90,8 +90,8 @@ export class ChildWindow implements OnInit, OnDestroy, AfterViewInit {
                 })
                 .takeUntil(mouseup$)
         }).subscribe((val: any) => {
-            this.top = val.top;
-            this.left = val.left;
+            this.top = val.top<0?0:val.top;
+            this.left = val.left;            
             this.moveWindow();
         }));
 
@@ -99,6 +99,13 @@ export class ChildWindow implements OnInit, OnDestroy, AfterViewInit {
             this.service.syncZIndex(this.windowId);
             this.renderer.setElementStyle(this.header.nativeElement, 'cursor', 'default');
         }));
+        //this.windowResizeListener();
+    }
+    private windowResizeListener(){
+        let mousemove$:Observable<MouseEvent> = Observable.fromEvent<MouseEvent>(this.window.nativeElement, 'mousemove');
+        mousemove$.subscribe(e=>{
+            console.log(e.x-this.left, e.y-this.top);
+        });
     }
     private closeWindow(event) {       
         this.service.closeWindow(this.windowId);
