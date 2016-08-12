@@ -7,7 +7,7 @@ import {ApiService} from '../../shared';
     providers:[ApiService],
     directives: [juGrid],
     template: `<div class="container">
-                    <div class="juGrid" (onLoad)="onLoad($event)" [data]="scholarList" [options]="scholarGridOptions"></div>
+                    <div class="juGrid" viewMode="panel" title="Test" (onLoad)="onLoad($event)" [data]="scholarList" [options]="scholarGridOptions"></div>
                 </div>`,
     styleUrls:['./grid.css'],
     encapsulation:ViewEncapsulation.None
@@ -20,9 +20,10 @@ export class gridExample implements OnInit {
     ngOnInit() {
         this.initScholar();        
      }
-     private onLoad(){        
+     private onLoad(grid:juGrid){        
         this.service.get('scholar')       
-        .subscribe(list=>{this.scholarList=list;});      
+        .subscribe(list=>{this.scholarList=list;});   
+        grid.slideToggle();   
      }
     private initScholar() {
         this.scholarGridOptions = { level:10,          

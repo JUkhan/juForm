@@ -21,8 +21,8 @@ import {juPanel} from './juPanel';
         trigger('slide',[
             state('up', style({opacity:0, height:0})),
             state('down', style({opacity:1, height:'*'})),
-            transition('up => down', animate('300ms edge-in')),
-            transition('down => up', animate('300ms edge-out'))
+            transition('up => down', animate('300ms ease-in')),
+            transition('down => up', animate('300ms ease-out'))
         ])
     ]
 })

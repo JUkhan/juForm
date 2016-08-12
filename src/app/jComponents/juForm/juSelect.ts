@@ -25,8 +25,8 @@ import {Subject} from 'rxjs';
         trigger('slide', [
             state('up', style({ opacity: 0, height: 0 })),
             state('down', style({ opacity: 1, height: '*' })),
-            transition('up => down', [style({ height: 45 }), animate('200ms edge-in')]),
-            transition('down => up', animate('200ms edge-out'))
+            transition('up => down', [style({ height: 45 }), animate('200ms ease-in')]),
+            transition('down => up', animate('200ms ease-out'))
         ])
     ]
 })

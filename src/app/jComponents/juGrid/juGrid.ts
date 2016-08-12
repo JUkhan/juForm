@@ -1,6 +1,27 @@
-import {Component, OnInit, OnChanges, ChangeDetectionStrategy, ContentChildren, QueryList, ResolvedReflectiveBinding,
-    OnDestroy, ViewContainerRef, Input, Output, EventEmitter, Renderer, ViewChild, ViewChildren,
-    ComponentRef, ElementRef, DynamicComponentLoader, ViewEncapsulation} from '@angular/core';
+import {Component,
+    OnInit,
+    OnChanges,
+    ChangeDetectionStrategy,
+    ContentChildren,
+    QueryList,
+    ResolvedReflectiveBinding,
+    OnDestroy,
+    ViewContainerRef,
+    Input,
+    Output,
+    EventEmitter,
+    Renderer,
+    ViewChild,
+    ViewChildren,
+    ComponentRef,
+    ElementRef,
+    trigger,
+    state,
+    style,
+    transition,
+    animate,
+    DynamicComponentLoader,
+    ViewEncapsulation} from '@angular/core';
 import {juForm, juSelect, Datetimepicker} from '../juForm';
 import {juPager} from '../juPager';
 import {TextFilter} from './TextFilter';
@@ -28,10 +49,13 @@ export class juGrid implements OnInit, OnChanges, OnDestroy {
     @Output() onLoad = new EventEmitter();
     private appRef: any
     dynamicComponent: ComponentRef<any>;
+    @Input() viewMode;
+    @Input() title;
+    @Input('panelMode') panelMode: string = 'default';
     constructor(
         private _elementRef: ElementRef,
         private loader: DynamicComponentLoader,
-        //private cd: ChangeDetectorRef,       
+        //private cd: ChangeDetectorRef,         
         private viewContainerRef: ViewContainerRef
     ) { }
     ngOnChanges(changes) {
@@ -178,10 +202,22 @@ export class juGrid implements OnInit, OnChanges, OnDestroy {
     }
 
     getUpdatedRecords() {
-        return this.dynamicComponent.instance.editors.toArray().filter(_ => _.isUpdated).map(_ => _.model);
+        if (this.dynamicComponent.instance && this.dynamicComponent.instance.editors) {
+            return this.dynamicComponent.instance.editors.toArray().filter(_ => _.isUpdated).map(_ => _.model);
+        }
+        return [];
     }
+
     private getDynamicConfig() {
         var tpl: any[] = [];
+        if (this.viewMode && this.viewMode === "panel") {
+            tpl.push(`<div class="panel panel-${this.panelMode}">
+            <div class="panel-heading" style="cursor:pointer" (click)="slideToggle()">
+                <h3 class="panel-title">${this.title} <b class="pull-right fa fa-{{slideState==='down'?'minus':'plus'}}-circle"></b></h3>
+            </div>
+            <div class="panel-body" @slide="slideState" style="overflow:auto">            
+            `);
+        }
         if (!this.options.classNames) {
             this.options.classNames = "table table-bordered table-striped";
         }
@@ -196,7 +232,10 @@ export class juGrid implements OnInit, OnChanges, OnDestroy {
         tpl.push(`<div class="filter-window" #filterWindow>
         <div class="title" (click)="hideFilterWindow()"><span>Title</span><a href="javascript:;" title="Close filter window." ><b class="fa fa-remove"></b></a></div>
         <div class="filter-content"></div>
-        </div>`)
+        </div>`);
+        if (this.viewMode && this.viewMode === "panel") {
+            tpl.push('</div></div>');
+        }
         return { tpl: tpl.join('') };
     }
     private renderTable(tpl: any[]) {
@@ -208,11 +247,11 @@ export class juGrid implements OnInit, OnChanges, OnDestroy {
         tpl.push(this.options.enableCellEditing ? this.getCellEditingView() : this.options.enableTreeView ? this.getTreeView() : this.getPlainView());
         tpl.push('</tbody>');
         tpl.push('</table>');
-        tpl.push(`<div class="juPager" [linkPages]="config.linkPages" [pageSize]="config.pageSize" [data]="data" (onInit)="pagerInit($event)" (pageChange)="onPageChange($event)"></div>`);
+        tpl.push(`<div [style.display]="viewList?.length?'block':'none'" class="juPager" [linkPages]="config.linkPages" [pageSize]="config.pageSize" [data]="data" (onInit)="pagerInit($event)" (pageChange)="onPageChange($event)"></div>`);
     }
     private getCellEditingView() {
         let tpl: any[] = [];
-        tpl.push(`<tr [ngClass]="config.trClass(row, i, f, l)" [model]="row" [config]="config" class="row-editor" *ngFor="let row of viewList;${this.options.trackBy ? 'trackBy:trackByResolver();' : ''}let i = index;let f=first;let l = last">`);
+        tpl.push(`<tr @slide="slideState" [ngClass]="config.trClass(row, i, f, l)" [model]="row" [config]="config" class="row-editor" *ngFor="let row of viewList;${this.options.trackBy ? 'trackBy:trackByResolver();' : ''}let i = index;let f=first;let l = last">`);
         this.options.columnDefs.forEach((item, index) => {
             this.getCell(item, `config.columnDefs[${index}]`, tpl, index);
         });
@@ -220,12 +259,15 @@ export class juGrid implements OnInit, OnChanges, OnDestroy {
         return tpl.join('');
     }
     private getDataExpression(item: any, config: string) {
+        if (!item.dataSrc) {
+            item.dataSrc = [];
+        }
         if (Array.isArray(item.dataSrc)) {
             return `${config}.dataSrc`;
         }
         return `${config}.dataSrc() | async`
     }
-    private getCell(item, config: string, tpl: any[], index: number) {        
+    private getCell(item, config: string, tpl: any[], index: number) {
         var style = '', change = '', validation = '';
         if (item.type) {
             if (item.validators) {
@@ -251,7 +293,7 @@ export class juGrid implements OnInit, OnChanges, OnDestroy {
                     tpl.push('</td>');
                     break;
                 case 'select':
-                    change = item.change ? `(change)="${config}.change(row, i)"` : '';
+                    change = item.change ? `(change)="${config}.change(row)"` : '';
                     style = item.width ? `style="width:${item.width}px"` : '';
                     tpl.push(`<td><select ${style} ${change} class="select form-control" [(ngModel)]="row.${item.field}" >
                             <option value="">{{${config}.emptyOptionText||'Select option'}}</option>
@@ -292,7 +334,7 @@ export class juGrid implements OnInit, OnChanges, OnDestroy {
     }
     private getPlainView() {
         let tpl: any[] = [];
-        tpl.push(`<tr [ngClass]="config.trClass(row, i, f, l)" *ngFor="let row of viewList;${this.options.trackBy ? 'trackBy:trackByResolver();' : ''}let i = index;let f=first;let l = last">`);
+        tpl.push(`<tr @slide="slideState" [ngClass]="config.trClass(row, i, f, l)" *ngFor="let row of viewList;${this.options.trackBy ? 'trackBy:trackByResolver();' : ''}let i = index;let f=first;let l = last">`);
         this.options.columnDefs.forEach((item, index) => {
             tpl.push(this.getNormalTD(item, index));
         });
@@ -343,7 +385,7 @@ export class juGrid implements OnInit, OnChanges, OnDestroy {
             tpl.push(`<template [ngIf]="${previousChild}.expand">`);
             tpl.push(`<template ngFor let-${row} [ngForOf]="${previousChild}.items" let-i${level}="index" let-f${level}="first" let-l${level}="last" ${this.options.trackBy ? '[ngForTrackBy]="trackByResolver()"' : ''}>`);
         }
-        tpl.push(`<tr [ngClass]="config.trClass(${this.getParams(row, level)})">`);
+        tpl.push(`<tr @slide="slideState" [ngClass]="config.trClass(${this.getParams(row, level)})">`);
         this.options.columnDefs.forEach((item, index) => {
             tpl.push(`<td ${this.getLevel(index, level)}`);
             if (item.tdClass) {
@@ -521,8 +563,11 @@ export class juGrid implements OnInit, OnChanges, OnDestroy {
         }
     }
     //end of calculte header
-    setDropdownData(key:string, value:any[]){
-         this.dynamicComponent.instance.setDropdownData(key, value);
+    setDropdownData(key: string, value: any[]) {
+        this.dynamicComponent.instance.setDropdownData(key, value);
+    }
+    slideToggle(){
+         this.dynamicComponent.instance.slideToggle();
     }
     search(val: any) {
         if (this.options.sspFn) {
@@ -563,7 +608,15 @@ function getComponent(obj: any) {
         selector: 'dycom',
         template: obj.tpl,
         directives: [juPager, juForm, rowEditor, juSelect, Datetimepicker],
-        encapsulation: ViewEncapsulation.None
+        encapsulation: ViewEncapsulation.None,
+        animations: [
+            trigger('slide', [
+                state('up', style({ opacity: 0, height: 0, padding:'0px'})),
+                state('down', style({ opacity: 1, height: '*' })),
+                transition('up => down', animate('300ms ease-in')),
+                transition('down => up', animate('200ms ease-out'))
+            ])
+        ]
     })
     class TableComponent {
         data: any[] = [];
@@ -572,8 +625,8 @@ function getComponent(obj: any) {
         viewList: any[] = [];
         _copyOfData: any;
         private pager: juPager;
-
-        constructor(private renderer: Renderer) {
+        private slideState: string = 'down';
+        constructor(private renderer: Renderer, private el: ElementRef) {
 
         }
         @ViewChildren(rowEditor) editors: QueryList<rowEditor>;
@@ -595,7 +648,10 @@ function getComponent(obj: any) {
         ngOnInit() {
 
         }
-
+        slideToggle() {
+            //jQuery(this.el.nativeElement).find('.panel-body').slideToggle();
+            this.slideState = this.slideState === 'down' ? 'up' : 'down';
+        }
         ngOnDestroy() {
             this.config.columnDefs
                 .filter(it => it.filterApi)
@@ -616,9 +672,9 @@ function getComponent(obj: any) {
                 this.config.onFormLoad(form);
             }
         }
-        setDropdownData(key:string, value:any[]){
-            let col=this.config.columnDefs.find(_=>_.field===key);
-            col.dataSrc=value;
+        setDropdownData(key: string, value: any[]) {
+            let col = this.config.columnDefs.find(_ => _.field === key);
+            col.dataSrc = value;
         }
         setData(data) {
             this.data = data;
@@ -662,7 +718,7 @@ function getComponent(obj: any) {
             let reverse = !colDef.reverse ? 1 : -1, sortFn = typeof colDef.comparator === 'function' ?
                 (a: any, b: any) => reverse * colDef.comparator(a, b) :
                 function (a: any, b: any) { return a = a[colDef.field], b = b[colDef.field], reverse * (<any>(a > b) - <any>(b > a)); };
-            this.data = [...this.data.sort(sortFn)]; 
+            this.data = [...this.data.sort(sortFn)];
         }
         sortIcon(colDef: any) {
             let hidden = typeof colDef.reverse === 'undefined';
@@ -723,7 +779,7 @@ function getComponent(obj: any) {
                     colDef.filterApi.init(colDef);
 
                 }
-                
+
                 if (colDef.filter === 'set' && !colDef.params.value && colDef.dataUpdated) {
                     colDef.filterApi.data = this._copyOfData
                         .map(item => {
@@ -755,13 +811,13 @@ function getComponent(obj: any) {
             }
         }
         filterChangedCallback() {
-            let activeFilters:any[] = this.config.columnDefs.filter(it => it.filterApi && it.filterApi.isFilterActive());
-            if(this.config.sspFn){               
-               let filter= activeFilters.map(_=>({field:_.field, searchCategory:_.filterApi.searchCategory, searchText:_.filterApi.searchText}));
-               this.pager.filter(filter);
+            let activeFilters: any[] = this.config.columnDefs.filter(it => it.filterApi && it.filterApi.isFilterActive());
+            if (this.config.sspFn) {
+                let filter = activeFilters.map(_ => ({ field: _.field, searchCategory: _.filterApi.searchCategory, searchText: _.filterApi.searchText }));
+                this.pager.filter(filter);
                 return;
             }
-            let temp: any[] = [];            
+            let temp: any[] = [];
             this._copyOfData.forEach(row => {
                 let flag: any = true;
                 activeFilters.forEach((col: any, index: number) => {
