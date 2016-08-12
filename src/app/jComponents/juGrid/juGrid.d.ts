@@ -16,7 +16,7 @@ export interface ColumnDefs{
     filter?:'set'|'text'|'number'|any;
     params?:{cellRenderer?:(row:any, index?:number)=>any, apply?:boolean, valueGetter?:(row:any)=>any,value?:string[]};
     dataSrc?:any[]|any;
-    change?:(row:any)=>void;
+    change?:(row:any, index?:number)=>void;
     content?:string;
     viewMode?:'select'|'checkbox'|'radio';
     validators?:Function|Array<Function>;

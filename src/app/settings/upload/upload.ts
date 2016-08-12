@@ -44,9 +44,9 @@ export class UploadComponent implements OnInit {
             sspFn: this.loadData.bind(this),
             columnDefs: [               
                 { headerName: 'Name', field: 'name' },
-                { headerName: 'Education',  field: 'education',type:'select', dataSrc:this.service.getEducations2()},
+                { headerName: 'Education', change:this.changeEducation.bind(this),  field: 'education',type:'juSelect'},
                 { headerName: 'Age', field: 'age', type:'number', width:70, validators:FV.required},
-                { headerName: 'Address', field: 'address' },
+                { headerName: 'Address', field: 'address', type:'juSelect', width:120 },
                 { headerName: 'Description', field: 'description' }
             ]
         }
@@ -54,5 +54,12 @@ export class UploadComponent implements OnInit {
     routerCanDeactivate(nextInstruction, prevInstruction) { 
         return false;
         
+    }
+    gridLoad(grid:juGrid){
+        grid.setDropdownData('education',this.service.getEducations2());
+    }
+    changeEducation(obj){
+        let data=[{name:'Tangail', value:'Tangail'},{name:'Dhaka', value:'Dhaka'}];
+        this.gridOptions.api.grid.setJuSelectData('address', data, obj.index);
     }
 }

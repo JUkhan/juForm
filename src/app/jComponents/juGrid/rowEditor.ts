@@ -44,7 +44,14 @@ export class rowEditor implements OnInit {
     } 
     getValidationMsg(fieldName:string) {
         return this.validationMsg[fieldName];
-    }  
+    } 
+    setJuSelectData(key: string, value: any[]){
+       try{
+          this.juSelectList.toArray().find(_=>_.propertyName===key).dataSrc=value;
+       }catch(er){
+           console.error(`Did not find the field name '${key}'`);           
+       }
+    } 
     private eventBinding(list: any[], eventName: string) {
         for (var i = 0; i < list.length; i++) {
             this.subsList.push(Observable.fromEvent(list[i], eventName).subscribe(e => {

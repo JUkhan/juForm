@@ -17,15 +17,15 @@ export class ApiService {
     return Observable.of(true);
   }
   scholarList: any[] = [
-    { id: 1, name: 'Abdulla', hasChild: true, education: 'CSE', address: 'Tngail', age: 23, description: 'Description..' },
-    { id: 2, name: 'Ariful', hasChild: true, education: 'BBA', address: 'Tngail', age: 27, description: 'Description..' },
-    { id: 3, name: 'Shofiqul', education: 'MBA', address: 'Tngail', age: 33, description: 'Description..' },
-    { id: 4, name: 'Siddika', education: 'CSE', address: 'Tngail', age: 35, description: 'Description..' }
+    { id: 1, name: 'Abdulla', hasChild: true, education: 'CSE', address: 'Tangail', age: 23, description: 'Description..' },
+    { id: 2, name: 'Ariful', hasChild: true, education: 'BBA', address: 'Tangail', age: 27, description: 'Description..' },
+    { id: 3, name: 'Shofiqul', education: 'MBA', address: 'Tangail', age: 33, description: 'Description..' },
+    { id: 4, name: 'Siddika', education: 'CSE', address: 'Tangail', age: 35, description: 'Description..' }
   ];
   getChildData(row: any) {
     return Observable.of([
-      { id: 3, name: 'child1', hasChild: true, education: 'MBA', address: 'Tngail', age: 33, description: 'Description..' },
-      { id: 4, name: 'child2', hasChild: true, education: 'CSE', address: 'Tngail', age: 35, description: 'Description..' }
+      { id: 3, name: 'child1', hasChild: true, education: 'MBA', address: 'Tangail', age: 33, description: 'Description..' },
+      { id: 4, name: 'child2', hasChild: true, education: 'CSE', address: 'Tangail', age: 35, description: 'Description..' }
     ])
   }
 

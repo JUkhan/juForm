@@ -25,7 +25,7 @@ import {Subject} from 'rxjs';
         trigger('slide', [
             state('up', style({ opacity: 0, height: 0 })),
             state('down', style({ opacity: 1, height: '*' })),
-            transition('up => down', [style({ height: 45 }), animate('200ms ease-in')]),
+            transition('up => down', [style({ height: 1 }), animate('300ms ease-in')]),
             transition('down => up', animate('200ms ease-out'))
         ])
     ]
@@ -40,6 +40,7 @@ export class juSelect implements OnInit, OnChanges {
     @Input() disabled: boolean = false;
     @Input() config: any = {};
     @Input('myForm') myForm: any;
+    @Input() index:number;
     notifyRowEditor = new Subject();
     valueChanges: Subject<any>;
 
@@ -229,8 +230,8 @@ export class juSelect implements OnInit, OnChanges {
         }
         if (valueSelected) {
             this._setValueByPropertyName(this.value);
-            this.onChange.next({ value: this.value, sender: this, form: this.myForm });
-            this.valueChanges.next({ value: this.value, sender: this, form: this.myForm });
+            this.onChange.next({ value: this.value, sender: this, form: this.myForm, index:this.index });
+            this.valueChanges.next({ value: this.value, sender: this, form: this.myForm , index:this.index});
 
         }
     }
@@ -261,8 +262,8 @@ export class juSelect implements OnInit, OnChanges {
         }
         if (valueSelected) {
             this._setValueByPropertyName(this.value);
-            this.onChange.next({ value: this.value, sender: this, form: this.myForm });
-            this.valueChanges.next({ value: this.value, sender: this, form: this.myForm });
+            this.onChange.next({ value: this.value, sender: this, form: this.myForm , index:this.index});
+            this.valueChanges.next({ value: this.value, sender: this, form: this.myForm , index:this.index});
 
         }
     }
@@ -328,8 +329,8 @@ export class juSelect implements OnInit, OnChanges {
     _setModelValue() {
         if (this.model && this.propertyName && this.method) {
             this._setValueByPropertyName(this.method === 'getValues' ? this.getValues() : this.getNames());
-            this.onChange.next({ value: this._getValueByPropertyName(), sender: this, form: this.myForm });
-            this.valueChanges.next({ value: this._getValueByPropertyName(), sender: this, form: this.myForm });
+            this.onChange.next({ value: this._getValueByPropertyName(), sender: this, form: this.myForm , index:this.index});
+            this.valueChanges.next({ value: this._getValueByPropertyName(), sender: this, form: this.myForm , index:this.index});
 
         }
     }

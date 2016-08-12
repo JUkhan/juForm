@@ -287,13 +287,14 @@ export class juGrid implements OnInit, OnChanges, OnDestroy {
                         property-name="${item.field}"
                         view-mode="${item.viewMode || 'select'}"
                         [data-src]="${this.getDataExpression(item, config)}"
+                        [index]="i"
                     >
                     </juSelect>`);
                     tpl.push(validation);
                     tpl.push('</td>');
                     break;
                 case 'select':
-                    change = item.change ? `(change)="${config}.change(row)"` : '';
+                    change = item.change ? `(change)="${config}.change(row, i)"` : '';
                     style = item.width ? `style="width:${item.width}px"` : '';
                     tpl.push(`<td><select ${style} ${change} class="select form-control" [(ngModel)]="row.${item.field}" >
                             <option value="">{{${config}.emptyOptionText||'Select option'}}</option>
@@ -566,6 +567,9 @@ export class juGrid implements OnInit, OnChanges, OnDestroy {
     setDropdownData(key: string, value: any[]) {
         this.dynamicComponent.instance.setDropdownData(key, value);
     }
+    setJuSelectData(key: string, value: any[], index:number){
+        this.dynamicComponent.instance.setJuSelectData(key, value, index);
+    }
     slideToggle(){
          this.dynamicComponent.instance.slideToggle();
     }
@@ -676,6 +680,9 @@ function getComponent(obj: any) {
             let col = this.config.columnDefs.find(_ => _.field === key);
             col.dataSrc = value;
         }
+         setJuSelectData(key: string, value: any[], index:number){
+             this.editors.toArray()[index].setJuSelectData(key, value);
+         }
         setData(data) {
             this.data = data;
             this.notifyFilter();
