@@ -46,7 +46,8 @@ export interface GridOptions{
     enableTreeView?:boolean; 
     lazyLoad?:(row:any)=>Observable<Array<any>>;
     level?:number;
-    enableCellEditing?:boolean;  
+    enableCellEditing?:boolean;
+    [key: string]:any;
 }
 export interface BaseFilter {
     init:(params:any)=>void;

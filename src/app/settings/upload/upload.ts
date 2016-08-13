@@ -47,18 +47,21 @@ export class UploadComponent implements OnInit {
                 { headerName: 'Education', change:this.changeEducation.bind(this),  field: 'education',type:'juSelect'},
                 { headerName: 'Age', field: 'age', type:'number', width:70, validators:FV.required},
                 { headerName: 'Address', field: 'address', type:'juSelect', width:120 },
-                { headerName: 'Description', field: 'description' }
-            ]
+                { headerName: '<button (click)="config.description()">Description</button>', field: 'description' }
+            ],
+            description:()=>{
+                alert('description');
+            }
         }
     }
-    routerCanDeactivate(nextInstruction, prevInstruction) { 
+    private routerCanDeactivate(nextInstruction, prevInstruction) { 
         return false;
         
     }
-    gridLoad(grid:juGrid){
+    private gridLoad(grid:juGrid){
         grid.setDropdownData('education',this.service.getEducations2());
     }
-    changeEducation(obj){
+    private changeEducation(obj){
         let data=[{name:'Tangail', value:'Tangail'},{name:'Dhaka', value:'Dhaka'}];
         this.gridOptions.api.grid.setJuSelectData('address', data, obj.index);
     }
