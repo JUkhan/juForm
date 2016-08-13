@@ -43,11 +43,11 @@ export class UploadComponent implements OnInit {
             pageSize: 3, crud: false, quickSearch: false, enableCellEditing:true,
             sspFn: this.loadData.bind(this),
             columnDefs: [               
-                { headerName: 'Name', field: 'name' },
+                { headerName: 'Name', field: 'name'},
                 { headerName: 'Education', change:this.changeEducation.bind(this),  field: 'education',type:'juSelect'},
                 { headerName: 'Age', field: 'age', type:'number', width:70},
                 { headerName: 'Address', validators:FV.required,  viewMode:'checkbox', search:true,  field: 'address', type:'juSelect', width:150 },
-                { headerName: '<button (click)="config.description()">Description</button>', field: 'description' }
+                { headerName: '<button (click)="config.description()">Description</button>', field: 'description', type:'text' }
             ],
             description:()=>{
                 alert('description');

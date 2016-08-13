@@ -267,15 +267,19 @@ export class juGrid implements OnInit, OnChanges, OnDestroy {
         }
         return `${config}.dataSrc() | async`
     }
+    private getHeaderName(item){
+
+    }
     private getCell(item, config: string, tpl: any[], index: number) {
-        var style = '', change = '', validation = '';
+        var style = '', change = '', validation = '', header='';
         if (item.type) {
             if (item.validators) {
                 validation = ` <i [ngClass]="isValid('${item.field}', i)" class="validation fa fa-info-circle" [title]="getValidationMsg('${item.field}', i)"></i>`;
             }
+             style = item.width ? `style="display:inline-block;width:${item.width}px"` : '';
+             header=item.headerName.replace(/(<([^>]+)>)/ig,'');
             switch (item.type) {
-                case 'juSelect':
-                 style = item.width ? `style="display:inline-block;width:${item.width}px"` : '';
+                case 'juSelect':                
                     change = item.change ? ` (option-change)="${config}.change($event)"` : '';
                     tpl.push(`<td><div ${style}>
                     <juSelect 
@@ -295,8 +299,7 @@ export class juGrid implements OnInit, OnChanges, OnDestroy {
                     tpl.push('</td>');
                     break;
                 case 'select':
-                    change = item.change ? `(change)="${config}.change(row, i)"` : '';
-                    style = item.width ? `style="width:${item.width}px"` : '';
+                    change = item.change ? `(change)="${config}.change(row, i)"` : '';                   
                     tpl.push(`<td><select ${style} ${change} class="select form-control" [(ngModel)]="row.${item.field}" >
                             <option value="">{{${config}.emptyOptionText||'Select option'}}</option>
                             <option *ngFor="let v of ${this.getDataExpression(item, config)}" [value]="v.value">{{v.name}}</option>
@@ -307,22 +310,21 @@ export class juGrid implements OnInit, OnChanges, OnDestroy {
                 case 'html':
                     tpl.push(`<td>${item.content}</td>`);
                     break;
-                case 'datepicker':
-                    tpl.push(`<td>
+                case 'datepicker':                
+                    tpl.push(`<td><div ${style}>
                     <div class="input-group date" [pickers]="${config}.config" picker-name="${item.type}" [model]="row" property="${item.field}" [config]="${config}" [form]="myForm" >
-                        <input type="text" [disabled]="${config}.disabled" [(ngModel)]="row.${item.field}" class="form-control" placeholder="Enter ${item.headerName}">
+                        <input type="text" [disabled]="${config}.disabled" [(ngModel)]="row.${item.field}" class="form-control" placeholder="Enter ${header}">
                         <span class="input-group-addon">
                             <span class="fa fa-calendar"></span>
                         </span>
-                    </div>`);
+                    </div></div>`);
                     tpl.push(validation);
                     tpl.push('</td>');
                     break;
 
                 case 'text':
-                case 'number':
-                    style = item.width ? `style="width:${item.width}px"` : '';
-                    tpl.push(`<td><input ${style} class="text form-control" type="${item.type}" [(ngModel)]="row.${item.field}" placeholder="Enter ${item.headerName}">`);
+                case 'number':                  
+                    tpl.push(`<td><input ${style} class="text form-control" type="${item.type}" [(ngModel)]="row.${item.field}" placeholder="Enter ${header}">`);
                     tpl.push(validation);
                     tpl.push('</td>');
                     break;
