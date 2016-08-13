@@ -275,8 +275,9 @@ export class juGrid implements OnInit, OnChanges, OnDestroy {
             }
             switch (item.type) {
                 case 'juSelect':
+                 style = item.width ? `style="display:inline-block;width:${item.width}px"` : '';
                     change = item.change ? ` (option-change)="${config}.change($event)"` : '';
-                    tpl.push(`<td>
+                    tpl.push(`<td><div ${style}>
                     <juSelect 
                         ${change} 
                         [config]="${config}" 
@@ -289,7 +290,7 @@ export class juGrid implements OnInit, OnChanges, OnDestroy {
                         [data-src]="${this.getDataExpression(item, config)}"
                         [index]="i"
                     >
-                    </juSelect>`);
+                    </juSelect></div>`);
                     tpl.push(validation);
                     tpl.push('</td>');
                     break;

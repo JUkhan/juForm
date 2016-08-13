@@ -14,7 +14,7 @@ import {Component,
     ChangeDetectionStrategy} from "@angular/core";
 import { uiService } from '../uiService';
 import {Subject} from 'rxjs';
-
+declare var jQuery:any;
 @Component({
     selector: 'juSelect',
     templateUrl: './juSelect.html',
@@ -53,6 +53,7 @@ export class juSelect implements OnInit, OnChanges {
     isAllSelected: boolean = false;
     _dataSrc: any;
     private slideState: string = 'up';
+    optionsDom: any;
     domClickSubscription: any;
     constructor(private el: ElementRef, private uiService: uiService) {
         this.valueChanges = new Subject();
@@ -140,16 +141,26 @@ export class juSelect implements OnInit, OnChanges {
             optionsDiv = this.el.nativeElement.querySelector('.options');
        
         this.domClickSubscription = this.uiService.documentClick.subscribe((event: any) => {
-            var target = event.target;
+            /*var target = event.target;
             if (this.uiService.hasParent(target, selectDiv)) {
                 this.eventState.visible = this.visible;
                 this.eventState.isHeader = true;
             } else { this.eventState.isHeader = false; }
             if (this.visible && !(this.uiService.hasParent(target, optionsDiv))) {
                 this.visible = false; this.focusToValidate = true;
+            }*/
+            var target = event.target;
+            if (jQuery(target).parents('.ju-select').length) {
+                this.eventState.visible = this.visible;
+                this.eventState.isHeader = true;
+            } else { this.eventState.isHeader = false; }
+            if (this.visible && !(jQuery(target).parents('.options').length)) {
+                this.visible = false; this.focusToValidate = true;
             }
             this.animate();
         });
+        this.optionsDom = jQuery(this.el.nativeElement).find('.options');
+        this.optionsDom.hide();
     }
     eventState: any = { visible: false, isHeader: false };
     focusToValidate: boolean = false;
@@ -167,8 +178,10 @@ export class juSelect implements OnInit, OnChanges {
             this.config.hideMsg = false;
         this.animate();
     }
+    
     animate() {
-        this.slideState = this.visible ? 'down' : 'up';
+        //this.slideState = this.visible ? 'down' : 'up';
+        this.visible ? this.optionsDom.slideDown() : this.optionsDom.slideUp();
     }
     ngOnDestroy() {
         if (!this.config.isFilter) {
@@ -235,7 +248,7 @@ export class juSelect implements OnInit, OnChanges {
 
         }
     }
-    selectItems(values_or_names: any) {
+    selectItems(values_or_names: any) {        
         if (!values_or_names) return;
         this.checkAll(false, false);
         var spliter = this.spliter, len = 0;

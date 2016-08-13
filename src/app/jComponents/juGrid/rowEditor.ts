@@ -35,7 +35,7 @@ export class rowEditor implements OnInit {
             }
         })
     }
-    isValid(fieldName:string){        
+    isValid(fieldName:string){         
         let def=this.config.columnDefs.find(_=>_.field===fieldName), res=true;
         if(def){
             res=this.validate_input(this.model[fieldName], fieldName, def);
@@ -60,7 +60,7 @@ export class rowEditor implements OnInit {
         }
     }
     private validationMsg:any={};
-    private validate_input(val: any, field: any, def:any) {
+    private validate_input(val: any, field: any, def:any) {       
             let res = true;
             if (def.validators) {
                 if (Array.isArray(def.validators) && def.validators.length > 0) {
@@ -75,8 +75,8 @@ export class rowEditor implements OnInit {
             }
             return res;
         }
-       private validate_input_helper(val: any, field: any, fx: Function) {
-            let msg = fx(val, field);
+       private validate_input_helper(val: any, field: any, fx: Function) {           
+            let msg = fx(val, field);            
             if (typeof msg === 'string') {               
                 this.validationMsg[field] = msg;                
                 return false;
