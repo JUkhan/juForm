@@ -25,11 +25,13 @@ export class juPager implements OnInit, OnChanges {
     constructor(private cd: ChangeDetectorRef) {
 
     }
-    changePageSize(size){
-        this.pageSize=size;
-        this.groupNumber=1;
-        this.activePage=1;
-        this.firePageChange();
+    changePageSize(size) {
+        this.pageSize = size;
+        this.groupNumber = 1;
+        this.activePage = 1;
+        this.sspFn ?
+            this.firePageChange()
+            : this.calculatePagelinkes();
     }
     set_sspFn(callback: Function) {
         this.sspFn = callback;
@@ -90,7 +92,7 @@ export class juPager implements OnInit, OnChanges {
     }
     clickEnd() {
         if (this.hasNext()) {
-            this.groupNumber = parseInt((this.totalPage / this.linkPages).toString())+((this.totalPage % this.linkPages)?1:0);
+            this.groupNumber = parseInt((this.totalPage / this.linkPages).toString()) + ((this.totalPage % this.linkPages) ? 1 : 0);
             this.calculatePagelinkes();
         }
     }

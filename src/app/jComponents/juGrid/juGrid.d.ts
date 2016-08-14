@@ -8,7 +8,7 @@ export interface ColumnDefs{
     headerName?:string;
     field?:string;
     tdClass?:(row:any, index:number, isFirst:boolean, isLast:boolean)=>{};
-    cellRenderer?:(row:any, index:number, isFirst:boolean, isLast:boolean)=>string;
+    cellRenderer?:(row:any, index:number, isFirst:boolean, isLast:boolean)=>any;
     action?:[{title:string, icon:string, click:(row:any)=>void}];
     children?:ColumnDefs[];
     sort?:boolean;

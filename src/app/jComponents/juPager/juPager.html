@@ -26,6 +26,7 @@
   </ul>
   <span style="position:relative;top:-10px"><span>Page Size </span>
   <select style="display:inline-block;width:80px" class="form-control" #psize [ngModel]="pageSize" (change)="changePageSize(psize.value)">
+    <option value="5">5</option>
     <option value="10">10</option>
     <option value="20">20</option>
     <option value="30">30</option>

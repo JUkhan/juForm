@@ -40,20 +40,28 @@ export class UploadComponent implements OnInit {
 
     private initGrid() {
         this.gridOptions = {
-            pageSize: 3, crud: false, quickSearch: false, enableCellEditing:true,
-            sspFn: this.loadData.bind(this),
-            columnDefs: [               
-                { headerName: 'Name', field: 'name'},
-                { headerName: 'Education', change:this.changeEducation.bind(this),  field: 'education',type:'juSelect'},
-                { headerName: 'Age', field: 'age', type:'number', width:70},
-                { headerName: 'Address', validators:FV.required,  viewMode:'checkbox', search:true,  field: 'address', type:'juSelect', width:150 },
-                { headerName: '<button (click)="config.description()">Description</button>', field: 'description', type:'text' }
+            pageSize: 5, crud: false, quickSearch: false, enableCellEditing:true,
+            //sspFn: this.loadData.bind(this),
+            columnDefs: [
+                {headerName: '<a href="javascript:;" (click)="config.addItem()" title="New item"><b class="fa fa-plus-circle"></b> </a>', cellRenderer:(row, index)=>++index},              
+                { headerName: 'Name', filter:'set', sort:true, field: 'name'},
+                { headerName: 'Education', filter:'set', sort:true, change:this.changeEducation.bind(this), validators:FV.required, field: 'education',type:'juSelect', width:120},
+                { headerName: 'Age', filter:'number', sort:true, field: 'age', type:'number', width:70, validators:FV.required},
+                { headerName: 'Birth Date', field: 'bdate', type:'datepicker', width:160, validators:FV.required},
+                { headerName: 'Address', viewMode:'checkbox', search:true,  field: 'address', type:'juSelect', width:150, validators:FV.required },
+                { headerName: 'Description', field: 'description', type:'text', validators:[FV.required, FV.minLength(5)] , width:220}
             ],
-            description:()=>{
-                alert('description');
+            addItem:()=>{
+                // this.service.getUploadData('scolar').subscribe(res=>{
+                //     console.log(res);
+                //     this.list=res.data;
+                // });
+                this.counter++;
+                this.gridOptions.api.grid.addItem({name:'Abdulla'+this.counter});
             }
         }
     }
+    counter=0
     private routerCanDeactivate(nextInstruction, prevInstruction) { 
         return false;
         

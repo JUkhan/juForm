@@ -10,6 +10,7 @@ import {Component,
     Input,
     Output,
     EventEmitter,
+    //ChangeDetectorRef,
     Renderer,
     ViewChild,
     ViewChildren,
@@ -69,6 +70,7 @@ export class juGrid implements OnInit, OnChanges, OnDestroy {
                 this.data.unshift(item);
             }
             this.dynamicComponent.instance.addItem(item);
+            //this.cd.markForCheck();
         }
     }
     showMessage(message: string, messageCss: string = 'alert alert-info') {
@@ -100,6 +102,7 @@ export class juGrid implements OnInit, OnChanges, OnDestroy {
                 this.data.splice(this.data.indexOf(item), 1);
             }
             this.dynamicComponent.instance.removeItem(item);
+            //this.cd.markForCheck();
         }
     }
     ngOnInit() {
@@ -215,7 +218,7 @@ export class juGrid implements OnInit, OnChanges, OnDestroy {
             <div class="panel-heading" style="cursor:pointer" (click)="slideToggle()">
                 <h3 class="panel-title">${this.title} <b class="pull-right fa fa-{{slideState==='down'?'minus':'plus'}}-circle"></b></h3>
             </div>
-            <div class="panel-body" @slide="slideState" style="overflow:auto">            
+            <div class="panel-body" style="overflow:auto">            
             `);
         }
         if (!this.options.classNames) {
@@ -251,7 +254,7 @@ export class juGrid implements OnInit, OnChanges, OnDestroy {
     }
     private getCellEditingView() {
         let tpl: any[] = [];
-        tpl.push(`<tr @slide="slideState" [ngClass]="config.trClass(row, i, f, l)" [model]="row" [config]="config" class="row-editor" *ngFor="let row of viewList;${this.options.trackBy ? 'trackBy:trackByResolver();' : ''}let i = index;let f=first;let l = last">`);
+        tpl.push(`<tr [ngClass]="config.trClass(row, i, f, l)" [model]="row" [config]="config" class="row-editor" *ngFor="let row of viewList;${this.options.trackBy ? 'trackBy:trackByResolver();' : ''}let i = index;let f=first;let l = last">`);
         this.options.columnDefs.forEach((item, index) => {
             this.getCell(item, `config.columnDefs[${index}]`, tpl, index);
         });
@@ -267,19 +270,20 @@ export class juGrid implements OnInit, OnChanges, OnDestroy {
         }
         return `${config}.dataSrc() | async`
     }
-    private getHeaderName(item){
+    private getHeaderName(item) {
 
     }
     private getCell(item, config: string, tpl: any[], index: number) {
-        var style = '', change = '', validation = '', header='';
+        var style = '', change = '', validation = '', header = '';
         if (item.type) {
             if (item.validators) {
                 validation = ` <i [ngClass]="isValid('${item.field}', i)" class="validation fa fa-info-circle" [title]="getValidationMsg('${item.field}', i)"></i>`;
             }
-             style = item.width ? `style="display:inline-block;width:${item.width}px"` : '';
-             header=item.headerName.replace(/(<([^>]+)>)/ig,'');
+            style = item.width ? `style="display:inline-block;width:${item.width}px"` : '';
+            item.headerName = item.headerName || '';
+            header = item.headerName.replace(/(<([^>]+)>)/ig, '');
             switch (item.type) {
-                case 'juSelect':                
+                case 'juSelect':
                     change = item.change ? ` (option-change)="${config}.change($event)"` : '';
                     tpl.push(`<td><div ${style}>
                     <juSelect 
@@ -299,7 +303,7 @@ export class juGrid implements OnInit, OnChanges, OnDestroy {
                     tpl.push('</td>');
                     break;
                 case 'select':
-                    change = item.change ? `(change)="${config}.change(row, i)"` : '';                   
+                    change = item.change ? `(change)="${config}.change(row, i)"` : '';
                     tpl.push(`<td><select ${style} ${change} class="select form-control" [(ngModel)]="row.${item.field}" >
                             <option value="">{{${config}.emptyOptionText||'Select option'}}</option>
                             <option *ngFor="let v of ${this.getDataExpression(item, config)}" [value]="v.value">{{v.name}}</option>
@@ -310,7 +314,7 @@ export class juGrid implements OnInit, OnChanges, OnDestroy {
                 case 'html':
                     tpl.push(`<td>${item.content}</td>`);
                     break;
-                case 'datepicker':                
+                case 'datepicker':
                     tpl.push(`<td><div ${style}>
                     <div class="input-group date" [pickers]="${config}.config" picker-name="${item.type}" [model]="row" property="${item.field}" [config]="${config}" [form]="myForm" >
                         <input type="text" [disabled]="${config}.disabled" [(ngModel)]="row.${item.field}" class="form-control" placeholder="Enter ${header}">
@@ -323,8 +327,15 @@ export class juGrid implements OnInit, OnChanges, OnDestroy {
                     break;
 
                 case 'text':
-                case 'number':                  
-                    tpl.push(`<td><input ${style} class="text form-control" type="${item.type}" [(ngModel)]="row.${item.field}" placeholder="Enter ${header}">`);
+                case 'number':
+                    tpl.push(`<td><div ${style}><input ${style} class="text form-control" type="${item.type}" [(ngModel)]="row.${item.field}" placeholder="Enter ${header}">`);
+                    tpl.push('</div>');
+                    tpl.push(validation);
+                    tpl.push('</td>');
+                    break;
+                case 'textarea':
+                    tpl.push(`<td><div ${style}><textarea ${style} class="text form-control" type="${item.type}" [(ngModel)]="row.${item.field}" placeholder="Enter ${header}"></textarea>`);
+                    tpl.push('</div>');
                     tpl.push(validation);
                     tpl.push('</td>');
                     break;
@@ -338,7 +349,7 @@ export class juGrid implements OnInit, OnChanges, OnDestroy {
     }
     private getPlainView() {
         let tpl: any[] = [];
-        tpl.push(`<tr @slide="slideState" [ngClass]="config.trClass(row, i, f, l)" *ngFor="let row of viewList;${this.options.trackBy ? 'trackBy:trackByResolver();' : ''}let i = index;let f=first;let l = last">`);
+        tpl.push(`<tr [ngClass]="config.trClass(row, i, f, l)" *ngFor="let row of viewList;${this.options.trackBy ? 'trackBy:trackByResolver();' : ''}let i = index;let f=first;let l = last">`);
         this.options.columnDefs.forEach((item, index) => {
             tpl.push(this.getNormalTD(item, index));
         });
@@ -389,7 +400,7 @@ export class juGrid implements OnInit, OnChanges, OnDestroy {
             tpl.push(`<template [ngIf]="${previousChild}.expand">`);
             tpl.push(`<template ngFor let-${row} [ngForOf]="${previousChild}.items" let-i${level}="index" let-f${level}="first" let-l${level}="last" ${this.options.trackBy ? '[ngForTrackBy]="trackByResolver()"' : ''}>`);
         }
-        tpl.push(`<tr @slide="slideState" [ngClass]="config.trClass(${this.getParams(row, level)})">`);
+        tpl.push(`<tr [ngClass]="config.trClass(${this.getParams(row, level)})">`);
         this.options.columnDefs.forEach((item, index) => {
             tpl.push(`<td ${this.getLevel(index, level)}`);
             if (item.tdClass) {
@@ -570,11 +581,11 @@ export class juGrid implements OnInit, OnChanges, OnDestroy {
     setDropdownData(key: string, value: any[]) {
         this.dynamicComponent.instance.setDropdownData(key, value);
     }
-    setJuSelectData(key: string, value: any[], index:number){
+    setJuSelectData(key: string, value: any[], index: number) {
         this.dynamicComponent.instance.setJuSelectData(key, value, index);
     }
-    slideToggle(){
-         this.dynamicComponent.instance.slideToggle();
+    slideToggle() {
+        this.dynamicComponent.instance.slideToggle();
     }
     search(val: any) {
         if (this.options.sspFn) {
@@ -618,7 +629,7 @@ function getComponent(obj: any) {
         encapsulation: ViewEncapsulation.None,
         animations: [
             trigger('slide', [
-                state('up', style({ opacity: 0, height: 0, padding:'0px'})),
+                state('up', style({ opacity: 0, height: 0, padding: '0px' })),
                 state('down', style({ opacity: 1, height: '*' })),
                 transition('up => down', animate('300ms ease-in')),
                 transition('down => up', animate('200ms ease-out'))
@@ -640,14 +651,14 @@ function getComponent(obj: any) {
         @ViewChild('filterWindow') filterWindowRef: ElementRef;
         isValid(fieldName, index) {
             let arr = this.editors.toArray();
-            if (arr.length > 0) {
+            if (arr.length > index) {
                 return arr[index].isValid(fieldName);
             }
-            return {};
+            return { 'validation-msg-hide': true };
         }
         getValidationMsg(fieldName, index) {
             let arr = this.editors.toArray();
-            if (arr.length > 0) {
+            if (arr.length > index) {
                 return arr[index].getValidationMsg(fieldName);
             }
             return '';
@@ -656,8 +667,8 @@ function getComponent(obj: any) {
 
         }
         slideToggle() {
-            //jQuery(this.el.nativeElement).find('.panel-body').slideToggle();
-            this.slideState = this.slideState === 'down' ? 'up' : 'down';
+            jQuery(this.el.nativeElement).find('.panel-body').slideToggle();
+            //this.slideState = this.slideState === 'down' ? 'up' : 'down';
         }
         ngOnDestroy() {
             this.config.columnDefs
@@ -683,31 +694,33 @@ function getComponent(obj: any) {
             let col = this.config.columnDefs.find(_ => _.field === key);
             col.dataSrc = value;
         }
-         setJuSelectData(key: string, value: any[], index:number){
-             this.editors.toArray()[index].setJuSelectData(key, value);
-         }
+        setJuSelectData(key: string, value: any[], index: number) {
+            this.editors.toArray()[index].setJuSelectData(key, value);
+        }
         setData(data) {
             this.data = data;
             this.notifyFilter();
             this._copyOfData = [...data];
         }
         onPageChange(list) {
+            console.log('list:', list);
             async_call(() => { this.viewList = list; });
         }
         addItem(item) {
             this.data.unshift(item);
+            this._copyOfData.unshift(item);
             this.pager.calculatePagelinkes();
             this.notifyFilter();
-            this._copyOfData.unshift(item);
         }
         updateItem(item) {
 
         }
         removeItem(item) {
             this.data.splice(this.data.indexOf(item), 1);
+            this._copyOfData.splice(this.data.indexOf(item), 1);
             this.pager.calculatePagelinkes();
             this.notifyFilter();
-            this._copyOfData.splice(this.data.indexOf(item), 1);
+
         }
         showMessage(message: string, messageCss: string) {
             if (this.formObj) {
