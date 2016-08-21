@@ -1,11 +1,10 @@
 import { Component, OnInit } from '@angular/core';
-import {juForm, FV, FormOptions, FormElement} from '../jComponents';
+import {juForm, FV, FormOptions, FormElement} from '../juComponents';
 
 @Component({
     selector: 'my-home',
     templateUrl: './home.component.html',
-    styleUrls: ['./home.component.scss'],
-    directives: [juForm]
+    styleUrls: ['./home.component.scss']
 })
 export class HomeComponent implements OnInit {
 

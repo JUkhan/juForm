@@ -1,16 +1,16 @@
 import {Component, ViewChild, Renderer, ViewEncapsulation, ApplicationRef, ComponentRef, ElementRef, OnInit, OnDestroy, AfterViewInit, DynamicComponentLoader, Injector} from '@angular/core';
-import {ChildWindow} from './childWindow';
-import {WindowService} from './windowService';
+import {juChildWindow} from './juChildWindow';
+import {juWindowService} from './juWindowService';
 import {Subscription} from 'rxjs';
 @Component({
     selector: 'pw, .pw',
-    templateUrl: './parentWindow.html',
-    styleUrls: ['./parentWindow.css'],    
+    templateUrl: './juParentWindow.html',
+    styleUrls: ['./juParentWindow.css'],    
     encapsulation: ViewEncapsulation.None,
     inputs:['height']
 })
 
-export class ParentWindow implements OnInit, OnDestroy {
+export class juParentWindow implements OnInit, OnDestroy {
     private childList: any;
     private placeHolder: any;
     private minList: any[] = [];
@@ -20,7 +20,7 @@ export class ParentWindow implements OnInit, OnDestroy {
         private dcl: DynamicComponentLoader,
         private injector: Injector,
         private appRef: ApplicationRef,
-        private service: WindowService) { }
+        private service: juWindowService) { }
 
     @ViewChild('container') container: ElementRef;
     @ViewChild('footer') footer: ElementRef;
@@ -69,8 +69,8 @@ export class ParentWindow implements OnInit, OnDestroy {
     private loadComponent(id: string) {
         let comOptions = this.childList[id];
         if (typeof comOptions.child === 'undefined') {
-            this.dcl.loadAsRoot(ChildWindow, this.placeHolder, this.injector)
-                .then((compRef: ComponentRef<ChildWindow>) => {
+            this.dcl.loadAsRoot(juChildWindow, this.placeHolder, this.injector)
+                .then((compRef: ComponentRef<juChildWindow>) => {
                     comOptions.child = compRef;
                     compRef.instance.windowId = id;
                     this.service.setProperty(id);

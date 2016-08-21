@@ -1,7 +1,7 @@
 import {Component, OnInit} from '@angular/core';
-import {ParentWindow, WindowService} from '../jComponents';
+import {juWindowService} from '../juComponents';
 @Component({
-    selector: 'window',
+    selector: 'window-component',
     template: `
     <div class="wnav">
         <input type="button" class="btn btn-success" value="Form" (click)="service.createWindow('form')">
@@ -10,13 +10,12 @@ import {ParentWindow, WindowService} from '../jComponents';
     </div>
     <div class="pw" height="500"></div>
     `,
-    directives: [ParentWindow],
-    providers: [WindowService]
+   providers:[juWindowService]
 })
 
-export class Window implements OnInit {
+export class WindowComponent implements OnInit {
 
-    constructor(private service: WindowService) { }
+    constructor(private service: juWindowService) { }
 
     ngOnInit() {
         this.service.windowConfig = {

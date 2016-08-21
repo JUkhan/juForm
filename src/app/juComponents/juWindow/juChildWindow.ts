@@ -1,14 +1,14 @@
 import {Component, Renderer, DynamicComponentLoader, Injector, ApplicationRef, ViewChild, ElementRef, OnInit, OnDestroy, ViewEncapsulation, AfterViewInit } from '@angular/core';
-import {WindowService} from './windowService';
+import {juWindowService} from './juWindowService';
 import {Observable, Subscription} from 'rxjs';
 @Component({
     selector: 'child-window',
-    templateUrl: './childWindow.html',
+    templateUrl: './juChildWindow.html',
     //inputs: ['title'],
     encapsulation: ViewEncapsulation.None
 })
 
-export class ChildWindow implements OnInit, OnDestroy, AfterViewInit {
+export class juChildWindow implements OnInit, OnDestroy, AfterViewInit {
     title: string = 'title';
     top: number = 200;
     left: number = 300;
@@ -18,7 +18,7 @@ export class ChildWindow implements OnInit, OnDestroy, AfterViewInit {
     private isMax: boolean = true;
     private subList:Subscription[]=[];
     windowId: string;
-    constructor(private service: WindowService,
+    constructor(private service: juWindowService,
         private dcl: DynamicComponentLoader,
         private injector: Injector,
         private appRef: ApplicationRef,

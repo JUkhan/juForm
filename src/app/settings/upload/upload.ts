@@ -1,10 +1,9 @@
 import {Component, OnInit} from '@angular/core';
-import {juGrid, juForm, FV, GridOptions, FormOptions, FormElement} from '../../jComponents';
+import {juGrid, juForm, FV, GridOptions, FormOptions, FormElement} from '../../juComponents';
 import {ApiService} from '../../shared';
 @Component({
     templateUrl: './upload.html',
-    styleUrls: ['./upload.css'],
-    directives: [juGrid, juForm],
+    styleUrls: ['./upload.css'],   
     providers: [ApiService]
 })
 

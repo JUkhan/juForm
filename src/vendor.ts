@@ -1,17 +1,20 @@
-// Angular 2
-import '@angular/platform-browser';
-import '@angular/platform-browser-dynamic';
-import '@angular/core';
-import '@angular/common';
-import '@angular/http';
-import '@angular/router';
-
-// RxJS
+// RxJS.
 import 'rxjs';
 
-// Other vendors for example jQuery, Lodash or Bootstrap
-// You can import js, ts, css, sass, ...
+// Angular 2.
+import '@angular/core';
+import '@angular/common';
+import '@angular/compiler';
+import '@angular/forms';
+import '@angular/http';
+import '@angular/platform-browser';
+import '@angular/platform-browser-dynamic';
+import '@angular/router';
+import '@angular/upgrade';
 
 
+// Other libraries.
 import 'moment/moment.js';
 import 'lodash/lodash.js';
+
+

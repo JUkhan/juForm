@@ -1,18 +1,11 @@
 import { Component } from '@angular/core';
-//import { ROUTER_DIRECTIVES } from '@angular/router';
-
-import { AppService } from './shared';
-import {juMenu, uiService} from '../app/jComponents';
 import '../style/app.scss';
-
 /*
  * App Component
  * Top Level Component
  */
 @Component({
-  selector: 'my-app', // <my-app></my-app>
-  providers: [uiService, AppService],
-  directives: [juMenu],
+  selector: 'my-app', 
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
 })

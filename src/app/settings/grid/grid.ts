@@ -1,11 +1,10 @@
 import {Component, OnInit, ViewEncapsulation} from '@angular/core';
-import {juGrid, FV, GridOptions} from '../../jComponents';
+import {juGrid, FV, GridOptions} from '../../juComponents';
 import {Observable} from 'rxjs';
 import {ApiService} from '../../shared';
 @Component({
     selector: 'selector',
-    providers:[ApiService],
-    directives: [juGrid],
+    providers:[ApiService],   
     template: `<div class="container">
                     <div class="juGrid" viewMode="panel" title="Test" (onLoad)="onLoad($event)" [data]="scholarList" [options]="scholarGridOptions"></div>
                 </div>`,

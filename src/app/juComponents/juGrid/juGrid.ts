@@ -35,8 +35,8 @@ declare var jQuery: any;
 @Component({
     selector: '.juGrid, [juGrid]',
     templateUrl: './juGrid.html',
-    styleUrls: ['./juGrid.css'],
-    directives: [juForm],
+    styleUrls: ['./juGrid.css'],  
+    directives: [juForm], 
     encapsulation: ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.Default
 })
@@ -624,8 +624,8 @@ export class juGrid implements OnInit, OnChanges, OnDestroy {
 function getComponent(obj: any) {
     @Component({
         selector: 'dycom',
-        template: obj.tpl,
-        directives: [juPager, juForm, rowEditor, juSelect, Datetimepicker],
+        template: obj.tpl, 
+        directives: [juPager, juForm, rowEditor, juSelect, Datetimepicker],      
         encapsulation: ViewEncapsulation.None,
         animations: [
             trigger('slide', [
