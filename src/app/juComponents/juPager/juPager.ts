@@ -1,8 +1,10 @@
-import {Component, OnInit, OnDestroy, Input, Output, EventEmitter, OnChanges, ChangeDetectionStrategy, ChangeDetectorRef} from '@angular/core';
+import {Component, OnInit,ViewEncapsulation, OnDestroy, Input, Output, EventEmitter, OnChanges, ChangeDetectionStrategy, ChangeDetectorRef} from '@angular/core';
 //import {Observable} from 'rxjs/observable';
 @Component({
     selector: '.juPager, [juPager]',
     template: require('./juPager.html'),
+    styles:['.juPager select{height:30px;padding:2px;}'],
+     encapsulation: ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 

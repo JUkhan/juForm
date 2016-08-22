@@ -668,7 +668,7 @@ function getComponent(obj: any) {
         }
         slideToggle() {
             jQuery(this.el.nativeElement).find('.panel-body').slideToggle();
-            //this.slideState = this.slideState === 'down' ? 'up' : 'down';
+            this.slideState = this.slideState === 'down' ? 'up' : 'down';
         }
         ngOnDestroy() {
             this.config.columnDefs

@@ -6,8 +6,8 @@ export const routes: Routes = [
   { path: '', redirectTo: 'about', pathMatch: 'full'},
   { path: 'home', component: HomeComponent},
   { path: 'about', component: AboutComponent },
-  //{ path: 'window', component: require('./window').WindowComponent},
-  //{ path: 'grid', component: require('./settings').gridExample},
+  { path: 'window', component: require('./window').WindowComponent},
+  { path: 'grid', component: require('./settings').gridExample},
   { path: 'upload', component: UploadComponent}
 ];
 
