@@ -30,7 +30,11 @@ import {uiService} from './uiService';
   exports:[
     juForm,
     juSelect,
+    Datetimepicker,
+    CkEditor,
+    FileSelect,
     juGrid,
+    rowEditor,
     juPanel, 
     juPanelContent,
     juPager,
@@ -38,10 +42,10 @@ import {uiService} from './uiService';
     juParentWindow
   ]
 })
-export class juComponentsModule {
+export class juComponents {
   static forRoot(): ModuleWithProviders {
     return {
-      ngModule: juComponentsModule,
+      ngModule: juComponents,
       providers: [ uiService ]
     };
   }

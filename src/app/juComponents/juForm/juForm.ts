@@ -695,9 +695,9 @@ export class juForm implements OnInit, OnDestroy, OnChanges {
 function getComponent(obj: any) {
     //console.log(obj.tpl);
     @Component({
-        selector: 'div',
-        template: obj.tpl,
-         directives: [juSelect, Datetimepicker, CkEditor, juForm, FileSelect] 
+        selector: 'dynamic-form',
+        template: obj.tpl
+         //directives: [juSelect, Datetimepicker, CkEditor, juForm, FileSelect] 
     })
     class DynamicComponent {
         form: any; model: any = {}; config: any = {}; buttons: any; active: any = ''; tabName: string = '';

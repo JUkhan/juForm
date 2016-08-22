@@ -3,7 +3,8 @@ import {juGrid, juForm, FV, GridOptions, FormOptions, FormElement} from '../../j
 import {ApiService} from '../../shared';
 @Component({
     templateUrl: './upload.html',
-    styleUrls: ['./upload.css'],   
+    styleUrls: ['./upload.css'], 
+    //directives:[juForm, juGrid],  
     providers: [ApiService]
 })
 

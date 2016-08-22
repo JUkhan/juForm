@@ -36,7 +36,7 @@ declare var jQuery: any;
     selector: '.juGrid, [juGrid]',
     templateUrl: './juGrid.html',
     styleUrls: ['./juGrid.css'],  
-    directives: [juForm], 
+    //directives: [juForm], 
     encapsulation: ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.Default
 })
@@ -623,9 +623,9 @@ export class juGrid implements OnInit, OnChanges, OnDestroy {
 
 function getComponent(obj: any) {
     @Component({
-        selector: 'dycom',
+        selector: 'dynamic-grid',
         template: obj.tpl, 
-        directives: [juPager, juForm, rowEditor, juSelect, Datetimepicker],      
+        //directives: [juPager, juForm, rowEditor, juSelect, Datetimepicker],      
         encapsulation: ViewEncapsulation.None,
         animations: [
             trigger('slide', [
@@ -702,8 +702,7 @@ function getComponent(obj: any) {
             this.notifyFilter();
             this._copyOfData = [...data];
         }
-        onPageChange(list) {
-            console.log('list:', list);
+        onPageChange(list) {            
             async_call(() => { this.viewList = list; });
         }
         addItem(item) {

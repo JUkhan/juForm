@@ -15,7 +15,7 @@ import { HomeComponent } from './home';
 import { AboutComponent } from './about';
 //import { WindowComponent } from './window';
 //import { UploadComponent, gridExample } from './settings';
-import {juComponentsModule} from './juComponents';
+import {juComponents} from './juComponents';
 
 @NgModule({
     imports: [
@@ -26,12 +26,13 @@ import {juComponentsModule} from './juComponents';
          JsonpModule,         
          RouterModule,       
         routing,
-        juComponentsModule.forRoot()
+        juComponents.forRoot()
+
     ],
     declarations: [        
         AppComponent,
         AboutComponent,
-        HomeComponent,        
+        HomeComponent,             
         //WindowComponent,
         //UploadComponent,
         //gridExample

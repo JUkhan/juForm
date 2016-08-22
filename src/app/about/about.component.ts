@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 //import {juPanel, juPanelContent} from '../juComponents';
 @Component({
   selector: 'my-about',
+  //directives:[juPanel, juPanelContent],
   templateUrl: './about.component.html',
   styleUrls: ['./about.component.scss']
 })

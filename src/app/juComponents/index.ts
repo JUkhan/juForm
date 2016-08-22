@@ -6,5 +6,5 @@ export * from './juMenu';
 export * from './uiService';
 export * from './juPanel';
 export * from './juWindow';
-export * from './juComponents.Module';
+export * from './juComponents';
 
